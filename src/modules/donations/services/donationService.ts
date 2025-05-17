@@ -1,5 +1,6 @@
-// Este servicio gestionaría todas las interacciones con la API para el procesamiento de donaciones
+// src/modules/donations/services/donationService.ts
 import { useState } from 'react';
+import { DONATION_IMPACT } from '@/shared/config/constants';
 
 // Interfaces de datos
 export interface DonationFormData {
@@ -69,6 +70,17 @@ export const useDonationService = () => {
         }
     };
 
+    // Obtener información de impacto desde constantes
+    const getImpactInfo = (amount: number) => {
+        if (amount <= DONATION_IMPACT.small.amount) {
+            return DONATION_IMPACT.small.description;
+        } else if (amount <= DONATION_IMPACT.medium.amount) {
+            return DONATION_IMPACT.medium.description;
+        } else {
+            return DONATION_IMPACT.large.description;
+        }
+    };
+
     // Funcionalidad específica para donaciones recurrentes
     const cancelRecurringDonation = async (subscriptionId: string): Promise<boolean> => {
         setIsLoading(true);
@@ -118,14 +130,37 @@ export const useDonationService = () => {
         }
     };
 
+    // Datos centralizados para los beneficios de donación
+    const DONATION_BENEFITS = {
+        recurring: [
+            'Apoyas sostenidamente a familias en necesidad.',
+            'Recibes informes sobre el impacto de tu ayuda.',
+            'Certificado anual para beneficios tributarios.',
+            'Formas parte de la red de donantes permanentes.'
+        ],
+        single: [
+            'Con tu donación alimentas a varias familias por un día.',
+            'Recibes comprobante para beneficios tributarios.',
+            'Impacto inmediato en la comunidad.',
+            'Contribuyes al rescate de alimentos que serían desperdiciados.'
+        ]
+    };
+
+    // Función para obtener los beneficios según el tipo de donación
+    const getDonationBenefits = (isRecurring: boolean) => {
+        return isRecurring ? DONATION_BENEFITS.recurring : DONATION_BENEFITS.single;
+    };
+
     return {
         isLoading,
         error,
         successData,
         processDonation,
         getDonationImpact,
+        getImpactInfo,
         cancelRecurringDonation,
-        processEmergencyDonation
+        processEmergencyDonation,
+        getDonationBenefits
     };
 };
 

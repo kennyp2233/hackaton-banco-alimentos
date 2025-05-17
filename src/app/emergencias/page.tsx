@@ -1,51 +1,25 @@
 'use client';
-import { Metadata } from 'next';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import PageContainer from '@/shared/layout/PageContainer';
 import { motion } from 'framer-motion';
 import EmergencyCard from '@/modules/emergency/components/EmergencyCard';
-
-
-
-// En producción, estos datos vendrían de una API o CMS
-const emergenciesData = [
-  {
-    id: 'em-001',
-    title: 'Emergencia por deslizamiento en el sur de Quito',
-    description: 'Tras fuertes lluvias en el sur de Quito, varias familias han perdido sus hogares y pertenencias. Estamos trabajando para proporcionar alimentos y suministros básicos a más de 120 personas afectadas.',
-    imageUrl: '/deslizamiento.png',
-    target: 10000,
-    raised: 6500,
-    daysLeft: 3,
-    beneficiaries: 120,
-    critical: true,
-  },
-  {
-    id: 'em-002',
-    title: 'Apoyo alimentario para familias en albergue temporal',
-    description: 'Más de 45 familias se encuentran en un albergue temporal tras haber sido desalojadas. Necesitamos tu ayuda para proporcionarles alimentos durante las próximas semanas.',
-    imageUrl: '/albergue.png',
-    target: 5000,
-    raised: 2300,
-    daysLeft: 7,
-    beneficiaries: 180,
-    critical: false,
-  },
-  {
-    id: 'em-003',
-    title: 'Ayuda tras inundaciones en zonas rurales de Pichincha',
-    description: 'Las recientes inundaciones han afectado gravemente a comunidades rurales cerca de Quito. Estamos coordinando la entrega de alimentos a áreas de difícil acceso.',
-    imageUrl: '/inundacion.png',
-    target: 8000,
-    raised: 1800,
-    daysLeft: 5,
-    beneficiaries: 90,
-    critical: true,
-  },
-];
+import { useEmergencyService, Emergency } from '@/modules/emergency/services/emergencyService';
 
 export default function EmergenciesPage() {
+  const { getActiveEmergencies, isLoading } = useEmergencyService();
+  const [emergencies, setEmergencies] = useState<Emergency[]>([]);
+
+  useEffect(() => {
+    const fetchEmergencies = async () => {
+      const response = await getActiveEmergencies();
+      setEmergencies(response.emergencies);
+    };
+
+    fetchEmergencies();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -119,9 +93,27 @@ export default function EmergenciesPage() {
               }
             }}
           >
-            {emergenciesData.map((emergency) => (
-              <EmergencyCard key={emergency.id} emergency={emergency} />
-            ))}
+            {isLoading ? (
+              // Mostrar esqueletos de carga si está cargando
+              Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="bg-white rounded-xl overflow-hidden shadow-lg p-6 animate-pulse">
+                  <div className="h-48 bg-gray-300 rounded mb-4"></div>
+                  <div className="h-6 bg-gray-300 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-300 rounded w-full mb-1"></div>
+                  <div className="h-4 bg-gray-300 rounded w-5/6 mb-4"></div>
+                  <div className="h-2 bg-gray-300 rounded w-full mb-4"></div>
+                  <div className="flex gap-2 mb-4">
+                    <div className="h-6 bg-gray-300 rounded w-1/3"></div>
+                    <div className="h-6 bg-gray-300 rounded w-1/3"></div>
+                  </div>
+                  <div className="h-10 bg-gray-300 rounded w-full"></div>
+                </div>
+              ))
+            ) : (
+              emergencies.map((emergency) => (
+                <EmergencyCard key={emergency.id} emergency={emergency} />
+              ))
+            )}
           </motion.div>
 
           {/* Info Section */}

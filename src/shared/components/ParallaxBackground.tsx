@@ -1,5 +1,5 @@
 import { FC, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useTime } from 'framer-motion';
 import Image from 'next/image';
 
 interface ParallaxBackgroundProps {
@@ -8,6 +8,11 @@ interface ParallaxBackgroundProps {
         alt: string;
         position: 'left' | 'right' | 'center';
         speed: number;
+        opacity?: number;
+        width?: number;
+        height?: number;
+        top?: string;
+        className?: string;
     }>;
 }
 
@@ -15,47 +20,76 @@ const ParallaxBackground: FC<ParallaxBackgroundProps> = ({ images }) => {
     const ref = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({
         target: ref,
-        offset: ["start end", "end start"]
+        offset: ["start start", "end start"]
     });
+    const time = useTime();
 
     return (
         <div ref={ref} className="relative h-full w-full overflow-hidden">
-            {/* Overlay to ensure readability of foreground content */}
-            <div className="absolute inset-0 bg-white/70 z-10" />
-
-            {/* Parallax images */}
             {images.map((image, index) => {
-                // Calculate transform based on position and speed
-                const yTransform = useTransform(
+                // Variación de fase basada en el índice para aleatorizar el movimiento
+                const phaseOffset = index * 1000; // 500ms de diferencia entre cada uno
+
+                // Parallax vertical base
+                const yParallax = useTransform(
                     scrollYProgress,
                     [0, 1],
-                    [0, image.speed * 100]
+                    [0, -image.speed * 25]
                 );
 
-                // Define positioning classes based on the image position
-                let positionClass = "left-1/2 -translate-x-1/2"; // default center
+                // Standby vertical con fase desplazada para cada imagen
+                const standbyY = useTransform(
+                    time,
+                    t => Math.sin((t + phaseOffset) / 1200) * 5
+                );
+
+                // Standby rotacional con fase desplazada
+                const standbyRotate = useTransform(
+                    time,
+                    t => Math.sin((t + phaseOffset) / 1500) * 5
+                );
+
+                // Combinar movimientos
+                const combinedY = useTransform(
+                    [yParallax, standbyY],
+                    ([parallax, standby]: any) => parallax + standby
+                );
+
+                const ySmooth = useSpring(combinedY, {
+                    stiffness: 100,
+                    damping: 20,
+                    mass: 1
+                });
+
+                let positionClass = "left-1/2 -translate-x-1/2";
                 if (image.position === 'left') {
-                    positionClass = "left-0";
+                    positionClass = "left-4";
                 } else if (image.position === 'right') {
-                    positionClass = "right-0";
+                    positionClass = "right-4";
                 }
+
+                const topPosition = image.top || `${(index * 15) + 10}%`;
 
                 return (
                     <motion.div
                         key={index}
-                        className={`absolute ${positionClass} z-0`}
+                        className={`absolute ${positionClass} ${image.className || ''}`}
                         style={{
-                            y: yTransform,
-                            opacity: 0.7,
-                            top: `${(index * 20) + 10}%`,
+                            y: ySmooth,
+                            rotate: standbyRotate,
+                            top: topPosition,
+                            //opacity: image.opacity ?? 0.7,
+                            zIndex: index
                         }}
                     >
                         <Image
                             src={image.src}
                             alt={image.alt}
-                            width={300}
-                            height={300}
+                            width={image.width || 150}
+                            height={image.height || 150}
                             className="object-contain"
+                            aria-hidden="true"
+                            role="presentation"
                         />
                     </motion.div>
                 );

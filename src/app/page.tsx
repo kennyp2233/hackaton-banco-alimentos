@@ -1,22 +1,62 @@
 'use client';
+import { useEffect, useState } from 'react';
 import Hero from '@/shared/components/Hero';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEmergencyService, Emergency } from '@/modules/emergency/services/emergencyService';
+import ParallaxBackground from '@/shared/components/ParallaxBackground';
+import { IMAGES } from '@/shared/config/constants';
+
+// Definimos las imágenes para el efecto parallax en la sección About
+const aboutParallaxImages = [
+  {
+    src: IMAGES.parallax.box,
+    alt: "Caja de verduras frescas",
+    position: 'right' as const,
+    speed: 15
+  },
+  {
+    src: IMAGES.parallax.platain,
+    alt: "Platano",
+    position: 'left' as const,
+    speed: 10
+  }
+];
 
 export default function Home() {
+  const { getCriticalEmergencies } = useEmergencyService();
+  const [criticalEmergency, setCriticalEmergency] = useState<Emergency | null>(null);
+
+  useEffect(() => {
+    const fetchCriticalEmergency = async () => {
+      const emergencies = await getCriticalEmergencies();
+      if (emergencies.length > 0) {
+        setCriticalEmergency(emergencies[0]);
+      }
+    };
+
+    fetchCriticalEmergency();
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <Hero />
 
       {/* About Section */}
-      <section className="py-16 md:py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section className="py-16 md:py-24 bg-gray-50 relative overflow-hidden">
+        {/* Parallax Background */}
+        <div className="absolute inset-0 z-0">
+          <ParallaxBackground images={aboutParallaxImages} />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <motion.div
             className="max-w-3xl mx-auto text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-6">El Banco de Alimentos de Quito</h2>
@@ -34,7 +74,8 @@ export default function Home() {
             <motion.div
               className="bg-white p-6 rounded-xl shadow-md"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 mx-auto">
@@ -52,7 +93,8 @@ export default function Home() {
             <motion.div
               className="bg-white p-6 rounded-xl shadow-md"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 mx-auto">
@@ -70,7 +112,8 @@ export default function Home() {
             <motion.div
               className="bg-white p-6 rounded-xl shadow-md"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 mx-auto">
@@ -162,7 +205,7 @@ export default function Home() {
             >
               <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
                 <Image
-                  src="/images/impact.jpg"
+                  src={IMAGES.impact}
                   alt="Personas recibiendo alimentos"
                   fill
                   className="object-cover"
@@ -185,8 +228,13 @@ export default function Home() {
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Emergencias Activas</h2>
             <p className="text-lg mb-8">
-              Algunas situaciones requieren atención inmediata. Conoce las campañas de emergencia
-              activas y cómo puedes contribuir.
+              {criticalEmergency ? (
+                <>
+                  <span className="font-bold">{criticalEmergency.title}</span>: {criticalEmergency.description.substring(0, 100)}...
+                </>
+              ) : (
+                "Algunas situaciones requieren atención inmediata. Conoce las campañas de emergencia activas y cómo puedes contribuir."
+              )}
             </p>
             <Link
               href="/emergencias"

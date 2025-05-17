@@ -90,21 +90,22 @@ export const IMAGES = {
     recurringDonation: '/images/recurring-donation.jpg',
     emergencies: {
         placeholder: '/images/emergency-placeholder.jpg',
-        landslide: '/images/emergencies/landslide.jpg',
+        landslide: '/images/emergencies/landslide.png',
         landslideGallery: [
-            '/images/emergencies/landslide-1.jpg',
-            '/images/emergencies/landslide-2.jpg',
-            '/images/emergencies/landslide-3.jpg',
+            '/images/emergencies/landslide-1.png',
+            '/images/emergencies/landslide-2.png',
+            '/images/emergencies/landslide-3.png',
         ],
-        shelter: '/images/emergencies/shelter.jpg',
-        floods: '/images/emergencies/floods.jpg',
+        shelter: '/images/emergencies/shelter.png',
+        floods: '/images/emergencies/floods.png',
     },
     parallax: {
-        vegetables: '/images/parallax/vegetables.png',
-        fruits: '/images/parallax/fruits.png',
+        tomatoe: '/images/parallax/tomatoe.png',
+        leaf: '/images/parallax/leaf.png',
+        platain: '/images/parallax/platain.png',
+        hand: '/images/parallax/hand.png',
         bread: '/images/parallax/bread.png',
-        milk: '/images/parallax/milk.png',
-        groceries: '/images/parallax/groceries.png',
+        box: '/images/parallax/box.png',
     },
 };
 

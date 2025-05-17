@@ -1,27 +1,24 @@
 'use client';
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-
-// En producción, estos datos vendrían de una API o un hook
-const activeEmergencies = [
-    {
-        id: 'em-001',
-        title: 'Emergencia por deslizamiento en el sur de Quito',
-        daysLeft: 3,
-        critical: true,
-    },
-    {
-        id: 'em-003',
-        title: 'Ayuda tras inundaciones en zonas rurales de Pichincha',
-        daysLeft: 5,
-        critical: true,
-    },
-];
+import { useEmergencyService, Emergency } from '@/modules/emergency/services/emergencyService';
 
 const EmergencyAlert: FC = () => {
-    // Si no hay emergencias activas, no mostrar el componente
-    if (activeEmergencies.length === 0) {
+    const { getCriticalEmergencies, isLoading } = useEmergencyService();
+    const [activeEmergencies, setActiveEmergencies] = useState<Emergency[]>([]);
+
+    useEffect(() => {
+        const fetchEmergencies = async () => {
+            const criticalEmergencies = await getCriticalEmergencies();
+            setActiveEmergencies(criticalEmergencies);
+        };
+
+        fetchEmergencies();
+    }, []);
+
+    // Si está cargando o no hay emergencias activas, no mostrar el componente
+    if (isLoading || activeEmergencies.length === 0) {
         return null;
     }
 
