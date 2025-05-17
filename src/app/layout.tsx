@@ -1,39 +1,33 @@
-// app/layout.tsx
-import type { Metadata } from "next";
-import { Cherry_Bomb_One, Inter } from "next/font/google";
-import "./globals.css";
+import { ReactNode } from 'react';
+import { Gabarito } from 'next/font/google';
+import Header from '@/shared/layout/Header';
+import Footer from '@/shared/layout/Footer';
+import './globals.css';
 
-const cherryBombOne = Cherry_Bomb_One({
-  variable: "--font-cherry-bomb-one",
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
+const gabarito = Gabarito({
+  subsets: ['latin'],
+  variable: '--font-gabarito',
+  display: 'swap',
 });
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "700"], // normal y bold
-  display: "swap",
-});
-
-
-export const metadata: Metadata = {
-  title: "Pepper Pizza",
-  description: "Your Pizza Party Starts Here!",
+export const metadata = {
+  title: 'Banco de Alimentos Quito | Donaciones',
+  description: 'Ayuda a combatir el hambre y reducir el desperdicio de alimentos en Quito.',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: ReactNode;
+}) {
   return (
-    <html lang="en">
-      <body
-        className={`${cherryBombOne.variable} ${inter.variable} antialiased bg-white text-black`}
-      >
-        {children}
+    <html lang="es">
+      <body className={`${gabarito.variable} font-gabarito min-h-screen flex flex-col`}>
+        <Header />
+        <main className="flex-grow">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );
