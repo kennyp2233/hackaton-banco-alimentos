@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+'use client';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import PageContainer from '@/shared/layout/PageContainer';
@@ -7,17 +7,6 @@ import { motion } from 'framer-motion';
 interface EmergencyPageProps {
     params: {
         id: string;
-    };
-}
-
-export async function generateMetadata({ params }: EmergencyPageProps): Promise<Metadata> {
-    // En un caso real, buscaríamos la emergencia en una API o base de datos
-    // Usando el params.id
-
-    // Simulación para el hackathon
-    return {
-        title: 'Emergencia - Banco de Alimentos Quito',
-        description: 'Detalles de la campaña de emergencia activa.',
     };
 }
 

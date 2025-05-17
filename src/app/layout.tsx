@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Gabarito } from 'next/font/google';
 import Header from '@/shared/layout/Header';
 import Footer from '@/shared/layout/Footer';
+import EmergencyAlert from '@/shared/components/EmergencyAlert';
 import './globals.css';
 
 const gabarito = Gabarito({
@@ -23,6 +24,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${gabarito.variable} font-gabarito min-h-screen flex flex-col`}>
+        {/* Alerta de emergencia en la parte superior */}
+        <EmergencyAlert />
+
         <Header />
         <main className="flex-grow">
           {children}

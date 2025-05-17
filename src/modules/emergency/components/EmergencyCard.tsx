@@ -34,15 +34,7 @@ const EmergencyCard: FC<EmergencyCardProps> = ({ emergency }) => {
             variants={itemVariants}
             className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
         >
-            {/* Critical badge */}
-            {emergency.critical && (
-                <div className="absolute top-4 right-4 z-10">
-                    <span className="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                        Urgente
-                    </span>
-                </div>
-            )}
-
+           
             {/* Image */}
             <div className="relative h-48 w-full">
                 <Image
