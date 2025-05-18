@@ -36,27 +36,49 @@ const DonationForm: FC<DonationFormProps> = ({
     const { processDonation, processEmergencyDonation } = useDonationService();
     const [formValues, setFormValues] = useState<any>(null);
     const [amountValue, setAmountValue] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState(false);
+
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            (window as any).onPagoPluxAuthorized = (response: any) => {
+            (window as any).Data.$onAuthorize = (response: any) => {
                 if (response.status === 'succeeded') {
                     const completeData = {
-                        ...formValues,
-                        amount: amountValue,
-                        transactionId: response.id_transaccion
+                        ...(window as any).__formValues,
+                        amount: (window as any).__amountValue,
+                        transactionId: response.id_transaccion,
+                        monto: response.amount,
+                        diferidos: response.deferred,
+                        tieneIntereses: response.interest,
+                        valorIntereses: response.interestValue,
+                        montoSinImpuestos: response.amountWoTaxes,
+                        tarjetaEncriptada: response.cardInfo,
+                        marcaTarjeta: response.cardIssuer,
+                        tipoTarjeta: response.cardType,
+                        identificacionCliente: response.clientID,
+                        nombreCliente: response.clientName,
+                        fechaPago: response.fecha,
+                        estadoPago: response.state,
+                        voucher: response.token,
+                        tipoPago: response.tipoPago,
                     };
-                    if (emergencyId) {
-                        processEmergencyDonation(emergencyId, completeData);
-                    } else {
-                        processDonation(completeData);
+
+                    // Ocultar contenedor visual si aplica
+                    if (typeof window !== 'undefined' && (window as any).jQuery) {
+                        (window as any).jQuery('.container-unpayed').hide();
                     }
-                    setShowConfetti(true);
-                    setFormSubmitted(true);
+
+                    // Feedback visual en frontend
+                    (window as any).__setShowConfetti?.(true);
+                    (window as any).__setFormSubmitted?.(true);
+
+                    // Registro en consola
+                    console.log('Pago completado:', completeData);
                 }
             };
         }
-    }, [formValues, amountValue, emergencyId, processDonation, processEmergencyDonation]);
+    }, []);
+
 
     useEffect(() => {
         setDonationType(isRecurring);
@@ -112,6 +134,13 @@ const DonationForm: FC<DonationFormProps> = ({
     const generatePagoPluxData = (values: any, finalAmount: number) => {
         setFormValues(values);
         setAmountValue(finalAmount);
+        if (typeof window !== 'undefined') {
+            (window as any).__formValues = values;
+            (window as any).__amountValue = finalAmount;
+            (window as any).__setFormSubmitted = setFormSubmitted;
+            (window as any).__setShowConfetti = setShowConfetti;
+        }
+
         return {
             PayboxRemail: 'abautista@pagoplux.com',
             PayboxSendmail: values.email,
@@ -136,7 +165,8 @@ const DonationForm: FC<DonationFormProps> = ({
                 PayboxPagoInmediato: false,
                 PayboxCobroPrueba: false
             }),
-            onAuthorize: 'onPagoPluxAuthorized'
+
+
         };
     };
 
@@ -258,18 +288,64 @@ const DonationForm: FC<DonationFormProps> = ({
                             <div className="flex flex-col items-center gap-2 mt-6">
                                 <button
                                     type="button"
-                                    disabled={!values.termsAccepted}
+                                    disabled={!values.termsAccepted || isLoading}
                                     onClick={() => {
                                         const finalAmount = values.amount || parseFloat(values.customAmount || '0');
                                         if (finalAmount > 0 && values.termsAccepted) {
+                                            setIsLoading(true);
                                             const data = generatePagoPluxData(values, finalAmount);
                                             iniciarDatos(data);
+
+                                            const timeoutMs = 10000; // 10 segundos
+                                            let observer: MutationObserver | null = null;
+                                            let timeout: NodeJS.Timeout;
+
+                                            const stopLoading = () => {
+                                                setIsLoading(false);
+                                                if (observer) observer.disconnect();
+                                                clearTimeout(timeout);
+                                            };
+
+                                            // Verifica si ya existe #base antes de observar
+                                            if (document.getElementById('base')) {
+                                                stopLoading();
+                                                return;
+                                            }
+
+                                            // Observar el DOM por cambios
+                                            observer = new MutationObserver(() => {
+                                                if (document.getElementById('base')) {
+                                                    stopLoading();
+                                                }
+                                            });
+
+                                            observer.observe(document.body, {
+                                                childList: true,
+                                                subtree: true,
+                                            });
+
+                                            // Fallback por timeout
+                                            timeout = setTimeout(() => {
+                                                stopLoading();
+                                                console.warn('[Donación] Se alcanzó el tiempo límite esperando a #base');
+                                            }, timeoutMs);
                                         }
                                     }}
-                                    className="w-full max-w-xs px-6 py-3 rounded-xl bg-primary text-white text-lg font-semibold shadow-lg hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center gap-2"
+                                    className={`w-full max-w-xs px-6 py-3 rounded-xl text-lg font-semibold shadow-lg transition-colors duration-200 flex items-center justify-center gap-2 ${!values.termsAccepted || isLoading
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-primary text-white hover:bg-primary/90'
+                                        }`}
                                 >
-                                    Donar ahora con tarjeta 💳
+                                    {isLoading ? (
+                                        <>
+                                            <span className="animate-spin border-2 border-t-transparent border-white rounded-full w-5 h-5" />
+                                            <span className="ml-2">Cargando pasarela...</span>
+                                        </>
+                                    ) : (
+                                        'Donar ahora con tarjeta 💳'
+                                    )}
                                 </button>
+
                                 <div className="flex gap-3 mt-2 opacity-70">
                                     {['visa', 'mastercard', 'americanexpress', 'dinersclub', 'discover'].map(
                                         (brand) => (
