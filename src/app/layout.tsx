@@ -5,6 +5,8 @@ import Header from '@/shared/layout/Header';
 import Footer from '@/shared/layout/Footer';
 import EmergencyAlert from '@/shared/components/EmergencyAlert';
 import './globals.css';
+import './PayboxOverride.css'
+
 import PagoPluxScripts from '@/shared/components/PagoPluxScripts';
 
 const gabarito = Gabarito({
@@ -22,7 +24,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
       <head>
-        <PagoPluxScripts />
+        <Script id="jquery"
+          src="https://code.jquery.com/jquery-3.4.1.min.js"
+          strategy="beforeInteractive" />
+
+        <Script id="pagoplux-sdk"
+          src="https://sandbox-paybox.pagoplux.com/paybox/index_angular.js"
+          strategy="afterInteractive"
+        />
       </head>
 
       <body

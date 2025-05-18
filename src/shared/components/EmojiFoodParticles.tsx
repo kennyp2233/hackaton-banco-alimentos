@@ -1,14 +1,14 @@
-"use client";
+// components/EmojiFoodParticles.tsx
 
-import React, { FC, useMemo, memo } from 'react';
+import React, { FC, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Predefined emoji arrays
+// Emojis y colores predefinidos
 const FOOD_EMOJIS = ['🍎', '🍌', '🥔', '🥦', '🥕', '🍞', '🥚', '🧀', '🍚', '🥫'];
 const HAPPY_EMOJIS = ['😊', '😃', '😄', '🙂', '😁'];
 const CONFETTI_COLORS = ['#FF1E44', '#FFC107', '#2196F3', '#4CAF50', '#9C27B0', '#FF9800'];
 
-// Particle generator helpers (pure functions)
+// Generadores de partículas
 const makeFoodParticles = (count: number, type: 'food' | 'happy') => {
     const emojis = type === 'food' ? FOOD_EMOJIS : HAPPY_EMOJIS;
     return Array.from({ length: count }, (_, i) => {
@@ -16,12 +16,17 @@ const makeFoodParticles = (count: number, type: 'food' | 'happy') => {
         const x = (Math.random() - 0.5) * 200;
         const y = -(Math.random() * 150 + 50);
         const scaleEnd = 0.8 + Math.random() * 0.7;
-
         return {
             id: `f-${Date.now()}-${i}`,
             emoji,
             initial: { x: 0, y: 0, opacity: 0, scale: 0 },
-            animate: { x, y, opacity: [0, 1, 0], scale: [0, scaleEnd, 0], rotate: Math.random() * 360 },
+            animate: {
+                x,
+                y,
+                opacity: [0, 1, 0],
+                scale: [0, scaleEnd, 0],
+                rotate: Math.random() * 360
+            },
             transition: { duration: 1.2 + Math.random() * 0.8, ease: 'easeOut' }
         };
     });
@@ -52,20 +57,30 @@ interface ParticleProps {
     amount: number;
     isActive: boolean;
     type?: 'food' | 'happy';
+    origin?: { x: number; y: number };
 }
 
-// Optimized EmojiFoodParticles: stateless, pure, memoized
-export const EmojiFoodParticles: FC<ParticleProps> = memo(({ amount = 0, isActive, type = 'food' }) => {
+export const EmojiFoodParticles: FC<ParticleProps> = memo(({
+    amount,
+    isActive,
+    type = 'food',
+    origin = { x: 0, y: 0 }
+}) => {
     const maxCount = Math.min(Math.floor(amount / 10) + 3, 15);
 
-    // Only recalc when isActive or amount/type changes
     const particles = useMemo(() => {
         if (!isActive || amount <= 0) return [];
         return makeFoodParticles(maxCount, type);
     }, [isActive, amount, type, maxCount]);
 
     return (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center z-10">
+        <div
+            className="absolute pointer-events-none overflow-visible z-10"
+            style={{
+                left: origin.x,
+                top: origin.y
+            }}
+        >
             <AnimatePresence>
                 {particles.map(p => (
                     <motion.div
@@ -88,15 +103,14 @@ interface ConfettiProps {
     isActive: boolean;
 }
 
-// Optimized ConfetiExplosion: stateless, pure, memoized
-export const ConfetiExplosion: FC<ConfettiProps> = memo(({ isActive }) => {
+export const ConfettiExplosion: FC<ConfettiProps> = memo(({ isActive }) => {
     const particles = useMemo(() => {
         if (!isActive) return [];
         return makeConfetti(80);
     }, [isActive]);
 
     return (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center z-10">
+        <div className="absolute inset-0 pointer-events-none overflow-visible z-10 flex items-center justify-center">
             <AnimatePresence>
                 {particles.map(c => (
                     <motion.div

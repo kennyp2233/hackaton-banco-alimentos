@@ -1,0 +1,157 @@
+/* CONTENEDOR GENERAL */
+#base.modal-g {
+    background-color: #ffffff !important;
+    max-width: 720px !important;
+    margin: auto !important;
+    padding: 2rem !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 60px rgba(0, 0, 0, 0.2) !important;
+    font-family: 'Inter', sans-serif !important;
+    color: #333 !important;
+}
+
+/* HEADER ESTABLECIMIENTO */
+#base .header-stbl {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+    padding-bottom: 1rem !important;
+    margin-bottom: 1.5rem !important;
+}
+
+#base .logo-img.logo-user {
+    width: 48px !important;
+    height: 48px !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+}
+
+/* TIPOS DE PAGO */
+#base .c-item-pago {
+    padding: 10px 14px !important;
+    border: 2px solid #ddd !important;
+    border-radius: 10px !important;
+    margin: 0 0.5rem !important;
+    transition: border-color 0.3s ease !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+#base .c-item-pago:hover,
+#base .c-item-pago-checked {
+    border-color: #0A84FF !important;
+    background-color: #f0f8ff !important;
+}
+
+/* TITULOS */
+#base .credit-type .c-title-bold {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    margin-bottom: 1rem !important;
+}
+
+/* INPUTS Y SELECTS */
+#base input[type="text"],
+#base input[type="password"],
+#base select {
+    padding: 10px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background-color: #f9f9f9 !important;
+    transition: border-color 0.2s !important;
+}
+
+#base input:focus,
+#base select:focus {
+    outline: none !important;
+    border-color: #0A84FF !important;
+    background-color: #ffffff !important;
+}
+
+#base .form-group {
+    margin-bottom: 1rem !important;
+}
+
+#base .inputs-imgs {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* BOTÓN DE PAGO */
+#base .button-completar {
+    background: #0A84FF !important;
+    color: white !important;
+    border: none !important;
+    padding: 14px 24px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.3s !important;
+    width: 100% !important;
+    margin-top: 1rem !important;
+}
+
+#base .button-completar:hover {
+    background: #006adf !important;
+}
+
+#base .img-button {
+    width: 24px !important;
+    height: 24px !important;
+    margin-right: 8px !important;
+}
+
+/* VALOR A PAGAR */
+#base .valor-pago-div span {
+    font-size: 26px !important;
+    font-weight: bold !important;
+    color: #0A84FF !important;
+}
+
+#base .pay-value {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* ERRORES */
+#base .help-block.has-error {
+    color: #e53935 !important;
+    font-size: 12px !important;
+    padding-top: 4px !important;
+}
+
+/* FOOTER LOGOS */
+#base #footer_imgs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 1rem !important;
+    margin-top: 2rem !important;
+    padding-top: 1rem !important;
+    border-top: 1px solid #eee !important;
+}
+
+#base .imgs_logos {
+    height: 28px !important;
+    object-fit: contain !important;
+    filter: grayscale(100%) !important;
+    opacity: 0.6 !important;
+    transition: filter 0.3s, opacity 0.3s !important;
+}
+
+#base .imgs_logos:hover {
+    filter: grayscale(0%) !important;
+    opacity: 1 !important;
+}

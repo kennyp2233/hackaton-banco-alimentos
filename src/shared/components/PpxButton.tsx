@@ -10,6 +10,7 @@ interface PpxButtonProps {
 const PpxButton = ({ data, visible = true }: PpxButtonProps) => {
     useEffect(() => {
         if (data) iniciarDatos(data);
+        console.log('Data:', data);
     }, [data]);
 
     return (
@@ -17,7 +18,7 @@ const PpxButton = ({ data, visible = true }: PpxButtonProps) => {
             <div id="modalPaybox" />
             <button
                 id="pay"
-                type="button"
+                type="submit"
                 className={`w-full max-w-xs px-6 py-3 rounded-xl bg-primary text-white text-lg font-semibold shadow-lg hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer ${visible ? '' : 'hidden'
                     }`}
             >
