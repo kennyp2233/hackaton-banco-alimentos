@@ -4,6 +4,7 @@ import { DonationFormData } from '../services/donationService';
 interface UseDonationFormProps {
   isRecurring: boolean;
   initialAmount?: number;
+  validateStep?: (step: number) => boolean;
 }
 
 interface UseDonationFormReturn {
@@ -16,6 +17,7 @@ interface UseDonationFormReturn {
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handlePaymentMethodChange: (method: string) => void;
   validateForm: () => boolean;
+  validateStep: (step: number) => boolean;
   resetForm: () => void;
   getFinalAmount: () => number;
 }
@@ -24,7 +26,7 @@ const useDonationForm = ({ isRecurring, initialAmount = 0 }: UseDonationFormProp
   // Estado para el monto seleccionado
   const [selectedAmount, setSelectedAmount] = useState<number | null>(initialAmount > 0 ? initialAmount : null);
   const [customAmount, setCustomAmount] = useState<string>('');
-  
+
   // Estado para los datos del formulario
   const [formData, setFormData] = useState<DonationFormData>({
     amount: initialAmount,
@@ -50,7 +52,7 @@ const useDonationForm = ({ isRecurring, initialAmount = 0 }: UseDonationFormProp
     setSelectedAmount(amount);
     setCustomAmount('');
     setFormData(prev => ({ ...prev, amount }));
-    
+
     // Limpiar error de monto si existe
     if (errors.amount) {
       setErrors(prev => {
@@ -68,10 +70,10 @@ const useDonationForm = ({ isRecurring, initialAmount = 0 }: UseDonationFormProp
     if (/^\d*\.?\d*$/.test(value) || value === '') {
       setCustomAmount(value);
       setSelectedAmount(null);
-      
+
       const numValue = value ? parseFloat(value) : 0;
       setFormData(prev => ({ ...prev, amount: numValue }));
-      
+
       // Limpiar error de monto si existe y el valor es válido
       if (errors.amount && numValue > 0) {
         setErrors(prev => {
@@ -87,7 +89,7 @@ const useDonationForm = ({ isRecurring, initialAmount = 0 }: UseDonationFormProp
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Limpiar error si el campo tiene valor
     if (errors[name] && value.trim()) {
       setErrors(prev => {
@@ -114,30 +116,30 @@ const useDonationForm = ({ isRecurring, initialAmount = 0 }: UseDonationFormProp
   // Validar el formulario
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     // Validar monto
     const finalAmount = getFinalAmount();
     if (finalAmount <= 0) {
       newErrors.amount = 'Por favor selecciona o ingresa un monto válido';
     }
-    
+
     // Validar nombre
     if (!formData.name.trim()) {
       newErrors.name = 'Por favor ingresa tu nombre';
     }
-    
+
     // Validar email
     if (!formData.email.trim()) {
       newErrors.email = 'Por favor ingresa tu correo electrónico';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Por favor ingresa un correo electrónico válido';
     }
-    
+
     // Validar teléfono si está presente
     if (formData.phoneNumber && !/^\+?[\d\s-]{7,15}$/.test(formData.phoneNumber)) {
       newErrors.phoneNumber = 'Por favor ingresa un número de teléfono válido';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -159,6 +161,36 @@ const useDonationForm = ({ isRecurring, initialAmount = 0 }: UseDonationFormProp
     setErrors({});
   };
 
+  const validateStep = (step: number): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (step === 1) {
+      // Validar monto
+      if (getFinalAmount() <= 0) {
+        newErrors.amount = 'Por favor selecciona o ingresa un monto válido';
+      }
+    }
+
+    if (step === 2) {
+      // Validar nombre
+      if (!formData.name.trim()) {
+        newErrors.name = 'Por favor ingresa tu nombre';
+      }
+      // Validar email
+      if (!formData.email.trim()) {
+        newErrors.email = 'Por favor ingresa tu correo electrónico';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = 'Por favor ingresa un correo electrónico válido';
+      }
+    }
+
+    // Actualiza los errores para mostrar los mensajes
+    setErrors(newErrors);
+
+    // Retorna true si no hay errores para este paso
+    return Object.keys(newErrors).length === 0;
+  };
+
   return {
     formData,
     selectedAmount,
@@ -169,6 +201,7 @@ const useDonationForm = ({ isRecurring, initialAmount = 0 }: UseDonationFormProp
     handleInputChange,
     handlePaymentMethodChange,
     validateForm,
+    validateStep,
     resetForm,
     getFinalAmount
   };

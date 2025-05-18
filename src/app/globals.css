@@ -4,9 +4,22 @@
 /* Define variable CSS para la fuente */
 :root {
   --font-gabarito: 'Gabarito', sans-serif;
-  --color-primary: #FF1E44;
-  /* un naranja fuerte similar al de las imágenes */
+  --color-primary: #E4173C;
+  /* Ajustado para mejor contraste */
+  --color-primary-dark: #C1122D;
+  /* Versión más oscura para hover */
+  --color-secondary: #2A2A2A;
+  --color-text-dark: #1A1A1A;
+  /* Texto oscuro para mejor legibilidad */
+  --color-text-light: #FFFFFF;
+  /* Texto claro para fondos oscuros */
   --color-background: #FFFFFF;
+  --color-accent: #FFC107;
+  /* Color acento para destacar elementos */
+  --color-emergency: #D32F2F;
+  /* Rojo para emergencias */
+  --color-success: #2E7D32;
+  /* Verde para éxito */
 }
 
 /* Opcional: clase para usar la fuente Gabarito */
@@ -21,4 +34,91 @@
 
 .bg-primary {
   background-color: var(--color-primary);
+}
+
+.hover\:bg-primary-dark:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+/* Animaciones */
+@keyframes pulse-subtle {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Estilos para sombras elevadas */
+.shadow-elevated {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Transiciones mejoradas */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estilos para botones con efecto de elevación */
+.btn-elevated {
+  transform: translateY(0);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-elevated:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Input con mejor contraste al enfoque */
+.input-focus-contrast:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(228, 23, 60, 0.25);
+}
+
+/* Gradientes para fondos */
+.bg-gradient-hero {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 100%);
+}
+
+/* Estilo mejorado para las tarjetas */
+.card-hover-effect {
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }

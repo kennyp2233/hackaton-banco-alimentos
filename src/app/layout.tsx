@@ -32,6 +32,16 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+
+        Sandbox:
+        <script src="https://sandbox-paybox.pagoplux.com/paybox/index_angular.js"></script>
+        Producción:
+        <script src="https://paybox.pagoplux.com/paybox/index_angular.js"></script>
+
+
+
       </body>
     </html>
   );

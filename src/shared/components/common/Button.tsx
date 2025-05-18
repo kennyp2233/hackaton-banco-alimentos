@@ -1,10 +1,11 @@
 import { FC, ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'outline' | 'text';
+    variant?: 'primary' | 'secondary' | 'outline' | 'text' | 'emergency';
     size?: 'sm' | 'md' | 'lg';
     fullWidth?: boolean;
     isLoading?: boolean;
+    elevated?: boolean;
 }
 
 const Button: FC<ButtonProps> = ({
@@ -13,19 +14,21 @@ const Button: FC<ButtonProps> = ({
     size = 'md',
     fullWidth = false,
     isLoading = false,
+    elevated = false,
     className = '',
     disabled,
     ...props
 }) => {
     // Base classes
-    const baseClasses = 'font-bold rounded-lg transition-all';
+    const baseClasses = 'font-bold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2';
 
     // Variant classes
     const variantClasses = {
-        primary: 'bg-primary hover:bg-primary/90 text-white',
-        secondary: 'bg-white hover:bg-gray-100 text-primary border border-primary',
-        outline: 'bg-transparent hover:bg-gray-100 text-gray-800 border border-gray-300',
-        text: 'bg-transparent hover:bg-gray-100 text-primary',
+        primary: 'bg-primary hover:bg-primary-dark text-white focus:ring-primary/50',
+        secondary: 'bg-white hover:bg-gray-100 text-primary border border-primary hover:border-primary-dark focus:ring-primary/30',
+        outline: 'bg-transparent hover:bg-gray-100 text-gray-800 border border-gray-300 hover:border-gray-400 focus:ring-gray-300',
+        text: 'bg-transparent hover:bg-gray-100 text-primary hover:text-primary-dark focus:ring-primary/30',
+        emergency: 'bg-emergency hover:bg-emergency/90 text-white focus:ring-emergency/50',
     };
 
     // Size classes
@@ -41,6 +44,9 @@ const Button: FC<ButtonProps> = ({
     // Disabled class
     const disabledClass = (disabled || isLoading) ? 'opacity-60 cursor-not-allowed' : '';
 
+    // Elevated effect
+    const elevatedClass = elevated && !(disabled || isLoading) ? 'btn-elevated shadow-md' : '';
+
     return (
         <button
             className={`
@@ -49,6 +55,7 @@ const Button: FC<ButtonProps> = ({
         ${sizeClasses[size]}
         ${widthClass}
         ${disabledClass}
+        ${elevatedClass}
         ${className}
       `}
             disabled={disabled || isLoading}
