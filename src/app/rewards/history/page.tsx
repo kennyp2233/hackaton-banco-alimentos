@@ -1,165 +1,40 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import PageContainer from '@/shared/layout/PageContainer';
-import { useRewardsService, Reward, UserReward } from '@/modules/rewards/services/rewardsService';
-import Image from 'next/image';
-import toast from 'react-hot-toast';
+import { useRewardsService, UserReward, UserPoints, PointTransaction } from '@/modules/rewards/services/rewardsService';
+import Link from 'next/link';
 
-// Mock user data - in a real application, this would come from an API
-const MOCK_USERS = [
-    { id: '1', name: 'Juan Pérez', email: 'juan.perez@example.com', points: 320 },
-    { id: '2', name: 'María López', email: 'maria.lopez@example.com', points: 750 },
-    { id: '3', name: 'Carlos Rodríguez', email: 'carlos.rodriguez@example.com', points: 175 },
-    { id: '4', name: 'Ana Martínez', email: 'ana.martinez@example.com', points: 430 },
-    { id: '5', name: 'Roberto Gómez', email: 'roberto.gomez@example.com', points: 925 },
-];
+export default function RewardsHistoryPage() {
+    const { getUserRewards, getUserPoints, isLoading } = useRewardsService();
 
-export default function AdminAssignRewardsPage() {
-    const {
-        getAvailableRewards,
-        getUserRewards,
-        assignRewardToUser,
-        updateUserRewardStatus,
-        isLoading
-    } = useRewardsService();
-
-    const [rewards, setRewards] = useState<Reward[]>([]);
     const [userRewards, setUserRewards] = useState<UserReward[]>([]);
-    const [users, setUsers] = useState(MOCK_USERS);
-    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-    const [isUpdateStatusModalOpen, setIsUpdateStatusModalOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<typeof MOCK_USERS[0] | null>(null);
-    const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
-    const [selectedUserReward, setSelectedUserReward] = useState<UserReward | null>(null);
-    const [assignNotes, setAssignNotes] = useState('');
-    const [newStatus, setNewStatus] = useState<UserReward['status']>('Assigned');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState<string | null>(null);
+    const [pointsHistory, setPointsHistory] = useState<PointTransaction[]>([]);
+    const [userPoints, setUserPoints] = useState<UserPoints | null>(null);
+    const [activeTab, setActiveTab] = useState('rewards'); // 'rewards' or 'transactions'
 
-    // Fetch rewards and user rewards on component mount
+    // Fetch data on component mount
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [rewardsData, userRewardsData] = await Promise.all([
-                    getAvailableRewards(),
-                    getUserRewards() // This would be modified in a real app to fetch all users' rewards
+                const [rewards, points] = await Promise.all([
+                    getUserRewards(),
+                    getUserPoints()
                 ]);
 
-                setRewards(rewardsData);
-
-                // Mock more user rewards for demonstration
-                const mockUserRewards: UserReward[] = [
-                    ...userRewardsData,
-                    {
-                        id: 'ur-002',
-                        userId: '2',
-                        rewardId: 'rw-003',
-                        reward: rewardsData.find(r => r.id === 'rw-003')!,
-                        dateAssigned: '2025-05-01',
-                        status: 'Redeemed',
-                        uniqueCode: 'RWRD-ABC123'
-                    },
-                    {
-                        id: 'ur-003',
-                        userId: '3',
-                        rewardId: 'rw-004',
-                        reward: rewardsData.find(r => r.id === 'rw-004')!,
-                        dateAssigned: '2025-04-20',
-                        status: 'Delivered',
-                        uniqueCode: 'RWRD-DEF456'
-                    },
-                    {
-                        id: 'ur-004',
-                        userId: '2',
-                        rewardId: 'rw-001',
-                        reward: rewardsData.find(r => r.id === 'rw-001')!,
-                        dateAssigned: '2025-03-15',
-                        status: 'Delivered',
-                        uniqueCode: 'RWRD-GHI789'
-                    }
-                ];
-
-                setUserRewards(mockUserRewards);
+                setUserRewards(rewards);
+                setUserPoints(points);
+                setPointsHistory(points.history);
             } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error('Error al cargar los datos');
+                console.error('Error al cargar historial', error);
             }
         };
 
         fetchData();
     }, []);
 
-    // Open modal for assigning a reward
-    const handleOpenAssignModal = (user: typeof MOCK_USERS[0]) => {
-        setSelectedUser(user);
-        setSelectedReward(null);
-        setAssignNotes('');
-        setIsAssignModalOpen(true);
-    };
-
-    // Open modal for updating reward status
-    const handleOpenUpdateStatusModal = (userReward: UserReward) => {
-        setSelectedUserReward(userReward);
-        setNewStatus(userReward.status);
-        setIsUpdateStatusModalOpen(true);
-    };
-
-    // Handle assigning a reward to a user
-    const handleAssignReward = async () => {
-        if (!selectedUser || !selectedReward) {
-            toast.error('Por favor selecciona un usuario y una recompensa');
-            return;
-        }
-
-        try {
-            const result = await assignRewardToUser(
-                selectedUser.id,
-                selectedReward.id,
-                assignNotes
-            );
-
-            if (result) {
-                toast.success(`Recompensa asignada a ${selectedUser.name}`);
-                // Add new user reward to list
-                setUserRewards([...userRewards, result]);
-                setIsAssignModalOpen(false);
-            }
-        } catch (error) {
-            console.error('Error assigning reward:', error);
-            toast.error('Error al asignar la recompensa');
-        }
-    };
-
-    // Handle updating reward status
-    const handleUpdateStatus = async () => {
-        if (!selectedUserReward || selectedUserReward.status === newStatus) {
-            setIsUpdateStatusModalOpen(false);
-            return;
-        }
-
-        try {
-            const result = await updateUserRewardStatus(selectedUserReward.id, newStatus);
-
-            if (result) {
-                toast.success('Estado de la recompensa actualizado');
-                // Update user reward in list
-                setUserRewards(userRewards.map(ur => ur.id === result.id ? result : ur));
-                setIsUpdateStatusModalOpen(false);
-            }
-        } catch (error) {
-            console.error('Error updating reward status:', error);
-            toast.error('Error al actualizar el estado de la recompensa');
-        }
-    };
-
-    // Get user name by ID
-    const getUserName = (userId: string) => {
-        const user = users.find(u => u.id === userId);
-        return user ? user.name : 'Usuario Desconocido';
-    };
-
-    // Get status badge color
+    // Get status badge style
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'Assigned':
@@ -175,384 +50,238 @@ export default function AdminAssignRewardsPage() {
         }
     };
 
-    // Filter user rewards based on search and status filter
-    const filteredUserRewards = userRewards.filter(ur => {
-        const matchesSearch = searchTerm === '' ||
-            getUserName(ur.userId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-            ur.reward.title.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesStatus = filterStatus === null || ur.status === filterStatus;
-
-        return matchesSearch && matchesStatus;
-    });
+    // Get transaction type badge style
+    const getTransactionBadge = (type: string) => {
+        switch (type) {
+            case 'Earned':
+                return 'bg-green-100 text-green-800';
+            case 'Spent':
+                return 'bg-red-100 text-red-800';
+            case 'Expired':
+                return 'bg-gray-100 text-gray-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 py-12">
             <PageContainer>
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-800">Asignación de Recompensas</h1>
-                        <p className="text-gray-600 mt-2">
-                            Gestiona las recompensas asignadas a los usuarios
-                        </p>
+                <motion.div
+                    className="mb-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <h1 className="text-3xl font-bold text-gray-800">Mi Historial</h1>
+                    <p className="text-gray-600 mt-2">
+                        Revisa tus recompensas y el historial de transacciones de créditos
+                    </p>
+                </motion.div>
+
+                {/* Points summary */}
+                <motion.div
+                    className="bg-white rounded-xl shadow-md p-6 mb-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                >
+                    <h2 className="text-xl font-bold mb-4">Resumen de Créditos</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-blue-50 rounded-lg p-4">
+                            <p className="text-blue-500 font-medium text-sm mb-1">Disponibles</p>
+                            <p className="text-3xl font-bold">{userPoints?.available || 0}</p>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-4">
+                            <p className="text-green-500 font-medium text-sm mb-1">Total acumulado</p>
+                            <p className="text-3xl font-bold">{userPoints?.total || 0}</p>
+                        </div>
+                        <div className="bg-amber-50 rounded-lg p-4">
+                            <p className="text-amber-500 font-medium text-sm mb-1">Utilizados</p>
+                            <p className="text-3xl font-bold">{userPoints?.spent || 0}</p>
+                        </div>
                     </div>
+                </motion.div>
+
+                {/* Tabs */}
+                <div className="flex border-b border-gray-200 mb-6">
+                    <button
+                        className={`py-3 px-6 font-medium text-lg ${activeTab === 'rewards'
+                                ? 'text-primary border-b-2 border-primary'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        onClick={() => setActiveTab('rewards')}
+                    >
+                        Mis Recompensas
+                    </button>
+                    <button
+                        className={`py-3 px-6 font-medium text-lg ${activeTab === 'transactions'
+                                ? 'text-primary border-b-2 border-primary'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        onClick={() => setActiveTab('transactions')}
+                    >
+                        Historial de Transacciones
+                    </button>
                 </div>
 
-                {/* Users Table */}
-                <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
-                    <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                        <h2 className="text-xl font-bold">Usuarios</h2>
-                    </div>
-
-                    {isLoading ? (
-                        <div className="p-6 animate-pulse space-y-4">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="flex items-center justify-between">
-                                    <div className="flex items-center">
-                                        <div className="h-10 w-10 bg-gray-200 rounded-full mr-4"></div>
-                                        <div>
-                                            <div className="h-5 bg-gray-200 rounded w-32 mb-2"></div>
-                                            <div className="h-4 bg-gray-200 rounded w-48"></div>
+                {/* Rewards Tab */}
+                {activeTab === 'rewards' && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.4 }}
+                    >
+                        {isLoading ? (
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {[1, 2].map(i => (
+                                    <div key={i} className="bg-white rounded-xl shadow animate-pulse p-4 flex">
+                                        <div className="h-24 w-24 bg-gray-200 rounded-lg mr-4"></div>
+                                        <div className="flex-1">
+                                            <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                            <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                                            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
                                         </div>
                                     </div>
-                                    <div className="w-24 h-8 bg-gray-200 rounded"></div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Usuario
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Email
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Créditos
-                                        </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Acciones
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {users.map((user) => (
-                                        <tr key={user.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                                        <span className="text-gray-500 font-bold">
-                                                            {user.name.charAt(0).toUpperCase()}
-                                                        </span>
-                                                    </div>
-                                                    <div className="ml-4">
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {user.name}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {user.email}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
-                                                {user.points} créditos
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button
-                                                    className="bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded-lg transition-colors"
-                                                    onClick={() => handleOpenAssignModal(user)}
-                                                >
-                                                    Asignar recompensa
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-
-                {/* User Rewards List */}
-                <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <h2 className="text-xl font-bold">Recompensas Asignadas</h2>
-
-                        <div className="flex flex-col md:flex-row gap-3">
-                            {/* Search input */}
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Buscar por usuario o recompensa"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full md:w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-                                />
-                                <div className="absolute left-3 top-2.5 text-gray-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
+                                ))}
                             </div>
-
-                            {/* Status filter */}
-                            <select
-                                value={filterStatus || ''}
-                                onChange={(e) => setFilterStatus(e.target.value === '' ? null : e.target.value)}
-                                className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-                            >
-                                <option value="">Todos los estados</option>
-                                <option value="Assigned">Asignada</option>
-                                <option value="Redeemed">Canjeada</option>
-                                <option value="Delivered">Entregada</option>
-                                <option value="Expired">Expirada</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {isLoading ? (
-                        <div className="p-6 animate-pulse space-y-4">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="flex items-center justify-between">
-                                    <div className="flex items-center">
-                                        <div className="h-12 w-12 bg-gray-200 rounded-lg mr-4"></div>
-                                        <div>
-                                            <div className="h-5 bg-gray-200 rounded w-40 mb-2"></div>
-                                            <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        ) : userRewards.length > 0 ? (
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {userRewards.map((userReward) => (
+                                    <motion.div
+                                        key={userReward.id}
+                                        className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row"
+                                        whileHover={{ y: -4 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <div className="relative h-32 md:h-auto md:w-1/3">
+                                            <Image
+                                                src={userReward.reward.imageUrl || '/images/rewards/placeholder.jpg'}
+                                                alt={userReward.reward.title}
+                                                fill
+                                                className="object-cover"
+                                            />
                                         </div>
-                                    </div>
-                                    <div className="w-24 h-8 bg-gray-200 rounded"></div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : filteredUserRewards.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Recompensa
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Usuario
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Fecha
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Estado
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Código
-                                        </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Acciones
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredUserRewards.map((userReward) => (
-                                        <tr key={userReward.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="flex-shrink-0 h-10 w-10 relative rounded-lg overflow-hidden">
-                                                        <Image
-                                                            src={userReward.reward.imageUrl || '/images/rewards/placeholder.jpg'}
-                                                            alt={userReward.reward.title}
-                                                            fill
-                                                            className="object-cover"
-                                                        />
-                                                    </div>
-                                                    <div className="ml-4">
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {userReward.reward.title}
-                                                        </div>
-                                                        <div className="text-xs text-gray-500">
-                                                            {userReward.reward.pointsRequired} créditos
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {getUserName(userReward.userId)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {userReward.dateAssigned}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`${getStatusBadge(userReward.status)} px-2 py-1 text-xs rounded-full`}>
+                                        <div className="p-4 md:p-6 flex-1">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h3 className="font-bold text-gray-800">{userReward.reward.title}</h3>
+                                                <span className={`${getStatusBadge(userReward.status)} text-xs px-2 py-1 rounded-full`}>
                                                     {userReward.status}
                                                 </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                                                {userReward.uniqueCode || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button
-                                                    className="text-primary hover:text-primary-dark"
-                                                    onClick={() => handleOpenUpdateStatusModal(userReward)}
+                                            </div>
+                                            <p className="text-gray-500 text-sm mb-3">Asignado: {userReward.dateAssigned}</p>
+                                            {userReward.uniqueCode && (
+                                                <p className="text-xs bg-gray-100 p-2 rounded mb-3 font-mono">
+                                                    Código: {userReward.uniqueCode}
+                                                </p>
+                                            )}
+                                            <Link href={`/rewards/${userReward.rewardId}`}>
+                                                <motion.div
+                                                    className="text-primary font-medium text-sm hover:text-primary-dark"
+                                                    whileHover={{ x: 2 }}
                                                 >
-                                                    Cambiar estado
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="p-6 text-center">
-                            <p className="text-gray-500">No se encontraron resultados</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Assign Reward Modal */}
-                {isAssignModalOpen && selectedUser && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <motion.div
-                            className="bg-white rounded-xl shadow-xl max-w-md w-full"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                        >
-                            <div className="px-6 py-4 border-b border-gray-200">
-                                <h2 className="text-xl font-bold">Asignar Recompensa</h2>
+                                                    Ver detalles
+                                                </motion.div>
+                                            </Link>
+                                        </div>
+                                    </motion.div>
+                                ))}
                             </div>
-
-                            <div className="p-6">
-                                <div className="mb-6">
-                                    <p className="text-gray-700">
-                                        Asignar recompensa a <strong>{selectedUser.name}</strong>
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Créditos disponibles: {selectedUser.points}
-                                    </p>
+                        ) : (
+                            <div className="bg-white rounded-xl shadow-md p-8 text-center">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
                                 </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Seleccionar Recompensa
-                                    </label>
-                                    <select
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-                                        value={selectedReward?.id || ''}
-                                        onChange={(e) => {
-                                            const reward = rewards.find(r => r.id === e.target.value);
-                                            setSelectedReward(reward || null);
-                                        }}
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">Aún no tienes recompensas</h3>
+                                <p className="text-gray-600 mb-6">
+                                    Realiza donaciones y canjea tus créditos por recompensas exclusivas
+                                </p>
+                                <Link href="/rewards">
+                                    <motion.div
+                                        className="inline-block bg-primary hover:bg-primary-dark text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                     >
-                                        <option value="">Seleccionar...</option>
-                                        {rewards.map((reward) => (
-                                            <option
-                                                key={reward.id}
-                                                value={reward.id}
-                                                disabled={reward.pointsRequired > selectedUser.points}
-                                            >
-                                                {reward.title} ({reward.pointsRequired} créditos)
-                                                {reward.pointsRequired > selectedUser.points ? ' - Créditos insuficientes' : ''}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Notas (opcional)
-                                    </label>
-                                    <textarea
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-                                        rows={3}
-                                        value={assignNotes}
-                                        onChange={(e) => setAssignNotes(e.target.value)}
-                                        placeholder="Añade notas sobre esta asignación"
-                                    ></textarea>
-                                </div>
-
-                                <div className="flex justify-end space-x-3">
-                                    <button
-                                        type="button"
-                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
-                                        onClick={() => setIsAssignModalOpen(false)}
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary"
-                                        onClick={handleAssignReward}
-                                        disabled={!selectedReward}
-                                    >
-                                        Asignar
-                                    </button>
-                                </div>
+                                        Ver recompensas disponibles
+                                    </motion.div>
+                                </Link>
                             </div>
-                        </motion.div>
-                    </div>
+                        )}
+                    </motion.div>
                 )}
 
-                {/* Update Status Modal */}
-                {isUpdateStatusModalOpen && selectedUserReward && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <motion.div
-                            className="bg-white rounded-xl shadow-xl max-w-md w-full"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                        >
-                            <div className="px-6 py-4 border-b border-gray-200">
-                                <h2 className="text-xl font-bold">Actualizar Estado</h2>
-                            </div>
-
-                            <div className="p-6">
-                                <div className="mb-6">
-                                    <p className="text-gray-700">
-                                        <strong>{selectedUserReward.reward.title}</strong>
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Asignada a {getUserName(selectedUserReward.userId)} el {selectedUserReward.dateAssigned}
-                                    </p>
-                                </div>
-
-                                <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Estado
-                                    </label>
-                                    <select
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-                                        value={newStatus}
-                                        onChange={(e) => setNewStatus(e.target.value as UserReward['status'])}
-                                    >
-                                        <option value="Assigned">Asignada</option>
-                                        <option value="Redeemed">Canjeada</option>
-                                        <option value="Delivered">Entregada</option>
-                                        <option value="Expired">Expirada</option>
-                                    </select>
-                                </div>
-
-                                <div className="flex justify-end space-x-3">
-                                    <button
-                                        type="button"
-                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
-                                        onClick={() => setIsUpdateStatusModalOpen(false)}
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary"
-                                        onClick={handleUpdateStatus}
-                                    >
-                                        Actualizar
-                                    </button>
+                {/* Transactions Tab */}
+                {activeTab === 'transactions' && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.4 }}
+                    >
+                        {isLoading ? (
+                            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div className="animate-pulse p-4 space-y-4">
+                                    {[1, 2, 3, 4].map(i => (
+                                        <div key={i} className="flex justify-between">
+                                            <div className="flex-1">
+                                                <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                                                <div className="h-4 bg-gray-200 rounded w-1/4 mt-1"></div>
+                                            </div>
+                                            <div className="w-16 h-6 bg-gray-200 rounded"></div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        </motion.div>
-                    </div>
+                        ) : pointsHistory.length > 0 ? (
+                            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                                <ul className="divide-y divide-gray-200">
+                                    {pointsHistory.map((transaction) => (
+                                        <li key={transaction.id} className="p-4 hover:bg-gray-50">
+                                            <div className="flex justify-between items-center">
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{transaction.description}</p>
+                                                    <p className="text-sm text-gray-500">{transaction.date}</p>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <span
+                                                        className={`${getTransactionBadge(transaction.type)} text-xs px-2 py-1 rounded-full mr-3`}
+                                                    >
+                                                        {transaction.type}
+                                                    </span>
+                                                    <span className={`text-lg font-bold ${transaction.type === 'Earned' ? 'text-green-600' : 'text-red-600'
+                                                        }`}>
+                                                        {transaction.type === 'Earned' ? '+' : '-'}{transaction.amount}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-xl shadow-md p-8 text-center">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">No hay transacciones</h3>
+                                <p className="text-gray-600 mb-6">
+                                    Realiza donaciones para comenzar a acumular créditos
+                                </p>
+                                <Link href="/donaciones">
+                                    <motion.div
+                                        className="inline-block bg-primary hover:bg-primary-dark text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        Hacer una donación
+                                    </motion.div>
+                                </Link>
+                            </div>
+                        )}
+                    </motion.div>
                 )}
             </PageContainer>
         </div>

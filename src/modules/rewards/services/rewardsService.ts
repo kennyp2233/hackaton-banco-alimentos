@@ -64,6 +64,15 @@ const REWARDS_DATA: Reward[] = [
         isHighlighted: true
     },
     {
+        id: 'rw-010',
+        title: 'Snack Mix Cibu',
+        description: 'Actualmente, el Banco de Alimentos Quito trabaja en el proyecto CIBU, que tiene como objetivo desarrollar productos utilizando alimentos rescatados por el BAQ.',
+        pointsRequired: 200,
+        imageUrl: '/images/rewards/cibu.png',
+        type: 'Badge',
+        active: true
+    },
+    {
         id: 'rw-002',
         title: 'Certificado de Impacto Social',
         description: 'Documento personalizado que acredita tu contribución a la comunidad',

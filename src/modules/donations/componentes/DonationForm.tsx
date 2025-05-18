@@ -184,7 +184,7 @@ const DonationForm: FC<DonationFormProps> = ({
             PayBoxClientIdentification: '1726380098',
             PayboxRecurrent: donationType && !emergencyId, // No recurrente si es para emergencia
             ...(donationType && !emergencyId && {
-                PayboxIdPlan: 'Plan Mensual',
+                PayboxIdPlan: '749',
                 PayboxPermitirCalendarizar: true,
                 PayboxPagoInmediato: false,
                 PayboxCobroPrueba: false

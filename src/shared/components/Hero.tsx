@@ -157,21 +157,9 @@ const Hero: FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                 >
-                    <motion.div
-                        className="mb-8 inline-block"
-                        animate={{
-                            y: [0, -10, 0],
-                            transition: {
-                                duration: 2,
-                                repeat: Infinity,
-                                repeatType: "reverse"
-                            }
-                        }}
-                    >
-                        <span className="bg-primary text-white text-sm font-bold px-4 py-2 rounded-full">
-                            JUNTOS CONTRA EL HAMBRE
-                        </span>
-                    </motion.div>
+                    <span className="bg-primary text-white text-sm font-bold px-4 py-2 rounded-full">
+                        JUNTOS CONTRA EL HAMBRE
+                    </span>
 
                     <motion.h1
                         className="text-4xl md:text-7xl font-bold mb-6 text-text-dark leading-tight"
@@ -237,6 +225,37 @@ const Hero: FC = () => {
                                     exit={{ opacity: 0, y: -20, height: 0 }}
                                     transition={{ duration: 0.4, ease: "easeInOut" }}
                                 >
+                                    <motion.img
+                                        src="/images/donacion/don1.png"
+                                        alt="Haz tu donación"
+                                        className="absolute rotate-12 top-[-100px] left-[-90px] w-40 h-auto pointer-events-none select-none"
+                                        animate={{
+                                            y: [0, -10, 0, 10, 0],
+                                            rotate: [12, 14, 12],
+                                        }}
+                                        transition={{
+                                            duration: 6,
+                                            repeat: Infinity,
+                                            ease: "easeInOut",
+                                        }}
+                                    />
+
+                                    <motion.img
+                                        src="/images/donacion/don2.png"
+                                        alt="Aporta ya"
+                                        className="absolute -rotate-12 top-[-120px] right-[-40px] w-40 h-auto pointer-events-none select-none"
+                                        animate={{
+                                            y: [0, 10, 0, -10, 0],
+                                            rotate: [-12, -14, -12],
+                                        }}
+                                        transition={{
+                                            duration: 6,
+                                            repeat: Infinity,
+                                            ease: "easeInOut",
+                                        }}
+                                    />
+
+
                                     {/* Componente de partículas de alimentos */}
                                     <EmojiFoodParticles
                                         amount={particleAmount}
@@ -310,8 +329,8 @@ const Hero: FC = () => {
 
                                     <motion.button
                                         className={`w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md flex items-center justify-center ${!(activeAmount || (customAmount && parseFloat(customAmount) > 0))
-                                                ? 'opacity-50 cursor-not-allowed'
-                                                : ''
+                                            ? 'opacity-50 cursor-not-allowed'
+                                            : ''
                                             }`}
                                         whileHover={
                                             activeAmount || (customAmount && parseFloat(customAmount) > 0)
