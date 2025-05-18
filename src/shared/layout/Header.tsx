@@ -1,13 +1,14 @@
 'use client';
-// This component is a hero section for a website, featuring a background image, a title, a description, and two buttons.
 import { FC, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import PointsDisplay from '@/shared/components/PointsDisplay';
 
 const Header: FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     // Detectar scroll para cambiar el aspecto del header
     useEffect(() => {
@@ -24,6 +25,12 @@ const Header: FC = () => {
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
+    }, []);
+
+    // Detectar si estamos en la ruta /admin para mostrar el menú de administración
+    useEffect(() => {
+        const path = window.location.pathname;
+        setIsAdmin(path.startsWith('/admin'));
     }, []);
 
     // Cerrar el menú al cambiar el tamaño de la ventana
@@ -67,7 +74,7 @@ const Header: FC = () => {
                     </Link>
 
                     {/* Navigation - Desktop */}
-                    <nav className="hidden md:flex items-center space-x-8">
+                    <nav className="hidden md:flex items-center space-x-6">
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -104,6 +111,34 @@ const Header: FC = () => {
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.3 }}
+                        >
+                            <Link href="/rewards" className="text-gray-700 hover:text-primary font-medium transition-colors relative group">
+                                Recompensas
+                                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                            </Link>
+                        </motion.div>
+
+                        {/* Admin menu item - Only shown if in /admin path */}
+                        {isAdmin && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.4 }}
+                            >
+                                <Link href="/admin/rewards" className="text-gray-700 hover:text-primary font-medium transition-colors relative group">
+                                    Admin Recompensas
+                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                                </Link>
+                            </motion.div>
+                        )}
+
+                        {/* Points display */}
+                        <PointsDisplay className="ml-2" />
+
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.4 }}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.98 }}
@@ -123,24 +158,27 @@ const Header: FC = () => {
                     </nav>
 
                     {/* Mobile Menu Button */}
-                    <motion.button
-                        className="md:hidden text-gray-700 focus:outline-none"
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        whileTap={{ scale: 0.9 }}
-                        aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d={isMenuOpen
-                                    ? "M6 18L18 6M6 6l12 12" // X icon
-                                    : "M4 6h16M4 12h16M4 18h16" // Hamburger icon
-                                }
-                            />
-                        </svg>
-                    </motion.button>
+                    <div className="md:hidden flex items-center space-x-4">
+                        <PointsDisplay />
+                        <motion.button
+                            className="text-gray-700 focus:outline-none"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            whileTap={{ scale: 0.9 }}
+                            aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d={isMenuOpen
+                                        ? "M6 18L18 6M6 6l12 12" // X icon
+                                        : "M4 6h16M4 12h16M4 18h16" // Hamburger icon
+                                    }
+                                />
+                            </svg>
+                        </motion.button>
+                    </div>
                 </div>
             </div>
 
@@ -177,6 +215,22 @@ const Header: FC = () => {
                                 >
                                     Emergencias
                                 </Link>
+                                <Link
+                                    href="/rewards"
+                                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 border-b border-gray-100"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    Recompensas
+                                </Link>
+                                {isAdmin && (
+                                    <Link
+                                        href="/admin/rewards"
+                                        className="text-gray-700 hover:text-primary font-medium transition-colors py-2 border-b border-gray-100"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Admin Recompensas
+                                    </Link>
+                                )}
                                 <Link
                                     href="/donaciones"
                                     className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-lg text-center transition-colors mt-2"

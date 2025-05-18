@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -43,6 +43,8 @@ const Hero: FC = () => {
     const [showParticles, setShowParticles] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
     const controls = useAnimation();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [particleOrigin, setParticleOrigin] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
     // Opciones de donación rápida
     const quickDonationOptions = [10, 25, 50, 100];
@@ -63,17 +65,27 @@ const Hero: FC = () => {
         return () => clearTimeout(timer);
     }, [controls]);
 
-    // Función para manejar la selección de una cantidad
-    const handleAmountSelect = (amount: number) => {
+    // Evento primero, luego amount
+    const handleAmountSelect = (
+        e: React.MouseEvent<HTMLButtonElement>,
+        amount: number
+    ) => {
         setActiveAmount(amount);
         setCustomAmount('');
         setShowParticles(true);
 
-        // Resetear el estado de partículas después de un momento
-        setTimeout(() => {
-            setShowParticles(false);
-        }, 2000);
+        if (!containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        const targetRect = (e.target as HTMLElement).getBoundingClientRect();
+        setParticleOrigin({
+            x: targetRect.left - rect.left + targetRect.width / 2,
+            y: targetRect.top - rect.top + targetRect.height / 0.8
+        });
+
+        setTimeout(() => setShowParticles(false), 2000);
     };
+
+
 
     // Función para manejar la entrada de cantidad personalizada
     const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,13 +95,17 @@ const Hero: FC = () => {
             setCustomAmount(value);
             setActiveAmount(null);
 
-            // Mostrar partículas solo si hay un valor numérico
-            if (parseFloat(value) > 0) {
+            if (parseFloat(value) > 0 && containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                const inputRect = (e.target as HTMLElement).getBoundingClientRect();
+                setParticleOrigin({
+                    x: inputRect.left - rect.left + inputRect.width / 2,
+                    y: inputRect.top - rect.top + inputRect.height / 2
+                });
                 setShowParticles(true);
-                setTimeout(() => {
-                    setShowParticles(false);
-                }, 2000);
+                setTimeout(() => setShowParticles(false), 2000);
             }
+
         }
     };
 
@@ -129,6 +145,7 @@ const Hero: FC = () => {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
+
                 >
                     <motion.div
                         className="mb-8 inline-block"
@@ -215,6 +232,7 @@ const Hero: FC = () => {
                                         amount={particleAmount}
                                         isActive={showParticles}
                                         type="food"
+                                        origin={particleOrigin}
                                     />
 
                                     {/* Componente de confeti para celebración */}
@@ -222,11 +240,12 @@ const Hero: FC = () => {
 
                                     <h3 className="text-xl font-bold mb-6 text-center">Donación rápida</h3>
 
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                                    <div ref={containerRef} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                                         {quickDonationOptions.map((amount) => (
                                             <motion.button
                                                 key={amount}
-                                                onClick={() => handleAmountSelect(amount)}
+                                                onClick={(e) => handleAmountSelect(e, amount)}
+
                                                 className={`
                                                     py-3 px-4 rounded-lg border-2 font-bold text-lg transition-all relative overflow-hidden
                                                     ${activeAmount === amount

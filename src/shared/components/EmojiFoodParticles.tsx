@@ -66,7 +66,7 @@ export const EmojiFoodParticles: FC<ParticleProps> = memo(({
     type = 'food',
     origin = { x: 0, y: 0 }
 }) => {
-    const maxCount = Math.min(Math.floor(amount / 10) + 3, 15);
+    const maxCount = Math.min(Math.floor(amount / 10) + 3, 12);
 
     const particles = useMemo(() => {
         if (!isActive || amount <= 0) return [];

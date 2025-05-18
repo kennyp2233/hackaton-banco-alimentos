@@ -367,11 +367,27 @@ const DonationForm: FC<DonationFormProps> = ({
                 </Formik>
             ) : (
                 <div className="text-center py-8">
-                    <h2 className="text-2xl font-bold mb-4">¡Gracias por tu donación!</h2>
                     <p className="text-gray-600 mb-6">
                         Hemos enviado un comprobante a tu correo. Tu aporte
                         {donationType && ' mensual'} hará una gran diferencia.
                     </p>
+
+                    <img
+                        src="/gracias-verduras.png"
+                        alt="Gracias por alimentar esperanza"
+                        className="mx-auto max-w-xs md:max-w-sm"
+                    />
+                    <button
+                        onClick={() => {
+                            setFormSubmitted(false);
+                            setShowConfetti(false);
+                            setFormValues(null);
+                            setAmountValue(0);
+                        }}
+                        className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl text-lg font-semibold shadow-md transition-all duration-200 cursor-pointer"
+                    >
+                        Realizar otra donación
+                    </button>
                 </div>
             )}
 

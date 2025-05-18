@@ -7,7 +7,6 @@ import EmergencyAlert from '@/shared/components/EmergencyAlert';
 import './globals.css';
 import './PayboxOverride.css'
 
-import PagoPluxScripts from '@/shared/components/PagoPluxScripts';
 
 const gabarito = Gabarito({
   subsets: ['latin'],
