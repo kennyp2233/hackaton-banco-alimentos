@@ -26,7 +26,7 @@ export default function EmergenciesPage() {
       <div className="relative overflow-hidden bg-primary text-white">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/emergencies/emergency-hero.jpg"
+            src="/images/emergencies/landslide.png"
             alt="Personas en una emergencia"
             fill
             priority
