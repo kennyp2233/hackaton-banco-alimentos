@@ -3,7 +3,7 @@
 'use client';
 import { FC, useState, useEffect, useRef } from 'react';
 import { Formik, Form } from 'formik';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useDonationService } from '../services/donationService';
 import { DONATION_AMOUNTS } from '@/shared/config/constants';
 import { EmojiFoodParticles, ConfettiExplosion } from '@/shared/components/EmojiFoodParticles';
@@ -32,6 +32,7 @@ const DonationForm: FC<DonationFormProps> = ({
     const [showConfetti, setShowConfetti] = useState<boolean>(false);
     const [particleAmount, setParticleAmount] = useState<number>(0);
     const [particleOrigin, setParticleOrigin] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+    const [showCustomField, setShowCustomField] = useState<boolean>(false);
 
     const { processDonation, processEmergencyDonation } = useDonationService();
     const [formValues, setFormValues] = useState<any>(null);
@@ -40,6 +41,11 @@ const DonationForm: FC<DonationFormProps> = ({
 
 
     useEffect(() => {
+        // Mostrar el campo personalizado si hay un monto inicial que no es uno de los predefinidos
+        if (initialAmount > 0 && !DONATION_AMOUNTS.includes(initialAmount)) {
+            setShowCustomField(true);
+        }
+
         if (typeof window !== 'undefined') {
             (window as any).Data.$onAuthorize = (response: any) => {
                 if (response.status === 'succeeded') {
@@ -61,6 +67,7 @@ const DonationForm: FC<DonationFormProps> = ({
                         estadoPago: response.state,
                         voucher: response.token,
                         tipoPago: response.tipoPago,
+                        emergencyId: (window as any).__emergencyId
                     };
 
                     // Ocultar contenedor visual si aplica
@@ -77,7 +84,7 @@ const DonationForm: FC<DonationFormProps> = ({
                 }
             };
         }
-    }, []);
+    }, [initialAmount]);
 
 
     useEffect(() => {
@@ -92,6 +99,7 @@ const DonationForm: FC<DonationFormProps> = ({
         setFieldValue('amount', amount);
         setFieldValue('customAmount', '');
         setParticleAmount(amount);
+        setShowCustomField(false);
 
         if (containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
@@ -105,6 +113,17 @@ const DonationForm: FC<DonationFormProps> = ({
 
         setShowParticles(true);
         setTimeout(() => setShowParticles(false), 2000);
+    };
+
+    const handleShowCustomField = (setFieldValue: Function) => {
+        setFieldValue('amount', 0);
+        setShowCustomField(true);
+
+        // Focus en el input después de un pequeño retraso para permitir animaciones
+        setTimeout(() => {
+            const customInput = document.getElementById('custom-amount-field');
+            if (customInput) customInput.focus();
+        }, 100);
     };
 
     const handleCustomAmountChange = (
@@ -137,9 +156,16 @@ const DonationForm: FC<DonationFormProps> = ({
         if (typeof window !== 'undefined') {
             (window as any).__formValues = values;
             (window as any).__amountValue = finalAmount;
+            (window as any).__emergencyId = emergencyId;
             (window as any).__setFormSubmitted = setFormSubmitted;
             (window as any).__setShowConfetti = setShowConfetti;
         }
+
+        const description = emergencyId
+            ? `Donación para emergencia #${emergencyId} - Banco de Alimentos Quito`
+            : donationType
+                ? 'Donación mensual - Banco de Alimentos Quito'
+                : 'Donación única - Banco de Alimentos Quito';
 
         return {
             PayboxRemail: 'abautista@pagoplux.com',
@@ -148,9 +174,7 @@ const DonationForm: FC<DonationFormProps> = ({
             PayboxSendname: values.name,
             PayboxBase0: '0.00',
             PayboxBase12: finalAmount.toFixed(2),
-            PayboxDescription: donationType
-                ? 'Donación mensual - Banco de Alimentos Quito'
-                : 'Donación única - Banco de Alimentos Quito',
+            PayboxDescription: description,
             PayboxProduction: false,
             PayboxEnvironment: 'sandbox',
             PayboxLanguage: 'es',
@@ -158,8 +182,8 @@ const DonationForm: FC<DonationFormProps> = ({
             PayboxDirection: 'Av. Siempre Viva 123',
             PayBoxClientPhone: '0999999999',
             PayBoxClientIdentification: '1726380098',
-            PayboxRecurrent: donationType,
-            ...(donationType && {
+            PayboxRecurrent: donationType && !emergencyId, // No recurrente si es para emergencia
+            ...(donationType && !emergencyId && {
                 PayboxIdPlan: 'Plan Mensual',
                 PayboxPermitirCalendarizar: true,
                 PayboxPagoInmediato: false,
@@ -190,12 +214,26 @@ const DonationForm: FC<DonationFormProps> = ({
         });
     };
 
-    const initialValues = {
-        amount: initialAmount,
-        customAmount: '',
-        name: '',
-        email: '',
-        termsAccepted: false
+    // Calcular los valores iniciales
+    const getInitialValues = () => {
+        // Si el monto inicial está dentro de los predefinidos, lo establecemos como amount
+        if (DONATION_AMOUNTS.includes(initialAmount)) {
+            return {
+                amount: initialAmount,
+                customAmount: '',
+                name: '',
+                email: '',
+                termsAccepted: false
+            };
+        }
+        // Si no, lo establecemos como customAmount
+        return {
+            amount: 0,
+            customAmount: initialAmount > 0 ? initialAmount.toString() : '',
+            name: '',
+            email: '',
+            termsAccepted: false
+        };
     };
 
     return (
@@ -215,12 +253,12 @@ const DonationForm: FC<DonationFormProps> = ({
             <ConfettiExplosion isActive={showConfetti} />
 
             <h2 className="text-2xl font-bold mb-6 text-center">
-                {donationType ? 'Donación Mensual' : 'Donación Única'}
+                {emergencyId ? 'Donación para Emergencia' : donationType ? 'Donación Mensual' : 'Donación Única'}
             </h2>
 
             {!formSubmitted ? (
                 <Formik
-                    initialValues={initialValues}
+                    initialValues={getInitialValues()}
                     enableReinitialize
                     validationSchema={DonationSchema}
                     onSubmit={() => { }}
@@ -246,14 +284,46 @@ const DonationForm: FC<DonationFormProps> = ({
                                         </motion.button>
                                     ))}
                                 </div>
-                                <input
-                                    name="customAmount"
-                                    type="text"
-                                    placeholder="Otro monto"
-                                    value={values.customAmount}
-                                    onChange={(e) => handleCustomAmountChange(e, setFieldValue)}
-                                    className="w-full pl-4 pr-4 py-4 text-lg border-2 rounded-lg border-gray-300"
-                                />
+
+                                {/* Botón "Otro monto" */}
+                                {!showCustomField && (
+                                    <motion.button
+                                        type="button"
+                                        onClick={() => handleShowCustomField(setFieldValue)}
+                                        className="w-full py-3 mb-3 px-4 rounded-lg border-2 border-gray-300 text-gray-700 hover:border-primary hover:text-primary font-medium transition-all"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        Otro monto
+                                    </motion.button>
+                                )}
+
+                                {/* Campo de monto personalizado (solo visible cuando se solicita) */}
+                                <AnimatePresence>
+                                    {showCustomField && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <div className="relative">
+                                                <div className="flex items-center">
+                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500 text-xl">$</span>
+                                                    <input
+                                                        id="custom-amount-field"
+                                                        name="customAmount"
+                                                        type="text"
+                                                        placeholder="Ingrese monto personalizado"
+                                                        value={values.customAmount}
+                                                        onChange={(e) => handleCustomAmountChange(e, setFieldValue)}
+                                                        className="w-full pl-10 pr-4 py-4 text-lg border-2 rounded-lg border-gray-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
                             <div>
@@ -369,7 +439,9 @@ const DonationForm: FC<DonationFormProps> = ({
                 <div className="text-center py-8">
                     <p className="text-gray-600 mb-6">
                         Hemos enviado un comprobante a tu correo. Tu aporte
-                        {donationType && ' mensual'} hará una gran diferencia.
+                        {emergencyId
+                            ? ' para esta emergencia'
+                            : donationType ? ' mensual' : ''} hará una gran diferencia.
                     </p>
 
                     <img

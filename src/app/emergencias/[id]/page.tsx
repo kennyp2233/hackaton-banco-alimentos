@@ -1,10 +1,23 @@
 'use client';
+import { useState, useRef } from 'react';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import PageContainer from '@/shared/layout/PageContainer';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { DONATION_AMOUNTS } from '@/shared/config/constants';
+import { EmojiFoodParticles, ConfettiExplosion } from '@/shared/components/EmojiFoodParticles';
+import { useRouter } from 'next/navigation';
 
 export default function EmergencyPage() {
+    const router = useRouter();
+    const [activeAmount, setActiveAmount] = useState<number | null>(null);
+    const [customAmount, setCustomAmount] = useState('');
+    const [showCustomField, setShowCustomField] = useState(false);
+    const [showParticles, setShowParticles] = useState(false);
+    const [showConfetti, setShowConfetti] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [particleOrigin, setParticleOrigin] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
     // En producción, obtendríamos los datos de la API
     // Simulación de datos para el hackathon
     const emergencyData = {
@@ -58,6 +71,77 @@ export default function EmergencyPage() {
 
     // Calcular porcentaje de progreso
     const progressPercentage = Math.min(Math.round((emergencyData.raised / emergencyData.target) * 100), 100);
+
+    // Manejador de selección de monto
+    const handleAmountSelect = (
+        e: React.MouseEvent<HTMLButtonElement>,
+        amount: number
+    ) => {
+        setActiveAmount(amount);
+        setCustomAmount('');
+        setShowCustomField(false);
+        setShowParticles(true);
+
+        if (!containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        const targetRect = (e.target as HTMLElement).getBoundingClientRect();
+        setParticleOrigin({
+            x: targetRect.left - rect.left + targetRect.width / 2,
+            y: targetRect.top - rect.top + targetRect.height / 2
+        });
+
+        setTimeout(() => setShowParticles(false), 2000);
+    };
+
+    // Mostrar campo personalizado
+    const handleShowCustomField = () => {
+        setActiveAmount(null);
+        setShowCustomField(true);
+        setCustomAmount('');
+
+        // Focus en el input después de un pequeño retraso para permitir animaciones
+        setTimeout(() => {
+            const customInput = document.getElementById('emergency-custom-amount');
+            if (customInput) customInput.focus();
+        }, 100);
+    };
+
+    // Función para manejar la entrada de cantidad personalizada
+    const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        // Solo permitir números y punto decimal
+        if (/^\d*\.?\d*$/.test(value) || value === '') {
+            setCustomAmount(value);
+
+            if (parseFloat(value) > 0 && containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                const inputRect = (e.target as HTMLElement).getBoundingClientRect();
+                setParticleOrigin({
+                    x: inputRect.left - rect.left + inputRect.width / 2,
+                    y: inputRect.top - rect.top + inputRect.height / 2
+                });
+                setShowParticles(true);
+                setTimeout(() => setShowParticles(false), 2000);
+            }
+        }
+    };
+
+    // Función para redireccionar a la página de donaciones con el monto preseleccionado
+    const handleDonate = () => {
+        // Mostrar confeti al continuar
+        setShowConfetti(true);
+
+        // Obtener el monto final (seleccionado o personalizado)
+        const finalAmount = activeAmount || (customAmount ? parseFloat(customAmount) : 0);
+
+        // Solo redireccionar si hay un monto válido
+        if (finalAmount > 0) {
+            // Redireccionar después de un breve retraso para ver el confeti
+            setTimeout(() => {
+                router.push(`/donaciones?amount=${finalAmount}&type=single&emergency=${emergencyData.id}`);
+            }, 800);
+        }
+    };
 
     return (
         <div className="py-12 md:py-16">
@@ -161,7 +245,18 @@ export default function EmergencyPage() {
                         </div>
 
                         {/* Sidebar */}
-                        <div>
+                        <div ref={containerRef} className="relative">
+                            {/* Componente de partículas de alimentos */}
+                            <EmojiFoodParticles
+                                amount={activeAmount || (customAmount ? parseFloat(customAmount) : 0)}
+                                isActive={showParticles}
+                                type="food"
+                                origin={particleOrigin}
+                            />
+
+                            {/* Componente de confeti para celebración */}
+                            <ConfettiExplosion isActive={showConfetti} />
+
                             {/* Progress */}
                             <motion.div
                                 className="bg-white rounded-xl shadow-md p-6 mb-6"
@@ -190,31 +285,114 @@ export default function EmergencyPage() {
                                         {emergencyData.beneficiaries} beneficiarios
                                     </div>
                                 </div>
-
-                                <button className="w-full bg-primary hover:bg-primary/90 text-white text-center font-bold py-3 px-4 rounded-lg transition-colors">
-                                    Donar a esta emergencia
-                                </button>
                             </motion.div>
 
-                            {/* Mini donation form or CTA */}
+                            {/* Módulo de donación */}
                             <motion.div
                                 className="bg-white rounded-xl shadow-md p-6"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.4 }}
                             >
-                                <h3 className="text-lg font-bold mb-3">Dona rápidamente</h3>
+                                <h3 className="text-lg font-bold mb-3 text-center">Ayuda a esta emergencia</h3>
+
+                                {/* Montos predefinidos */}
                                 <div className="grid grid-cols-2 gap-2 mb-4">
-                                    <button className="bg-gray-100 hover:bg-gray-200 py-2 rounded font-bold">$10</button>
-                                    <button className="bg-gray-100 hover:bg-gray-200 py-2 rounded font-bold">$25</button>
-                                    <button className="bg-gray-100 hover:bg-gray-200 py-2 rounded font-bold">$50</button>
-                                    <button className="bg-gray-100 hover:bg-gray-200 py-2 rounded font-bold">$100</button>
+                                    {DONATION_AMOUNTS.slice(0, 4).map((amount) => (
+                                        <motion.button
+                                            key={amount}
+                                            onClick={(e) => handleAmountSelect(e, amount)}
+                                            className={`
+                                                py-3 rounded-lg font-bold transition-all
+                                                ${activeAmount === amount
+                                                    ? 'bg-primary text-white'
+                                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                                                }
+                                            `}
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            ${amount}
+                                        </motion.button>
+                                    ))}
                                 </div>
-                                <button className="w-full bg-primary hover:bg-primary/90 text-white text-center font-bold py-2 px-4 rounded-lg transition-colors mb-3">
+
+                                {/* Botón "Otro monto" */}
+                                {!showCustomField && (
+                                    <motion.button
+                                        onClick={handleShowCustomField}
+                                        className="w-full py-2 mb-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-all"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        Otro monto
+                                    </motion.button>
+                                )}
+
+                                {/* Campo de monto personalizado */}
+                                <AnimatePresence>
+                                    {showCustomField && (
+                                        <motion.div
+                                            className="mb-4"
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <div className="relative">
+                                                <div className="flex items-center">
+                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                                                    <input
+                                                        id="emergency-custom-amount"
+                                                        type="text"
+                                                        placeholder="Ingrese monto"
+                                                        value={customAmount}
+                                                        onChange={handleCustomAmountChange}
+                                                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Botón donar */}
+                                <motion.button
+                                    className={`w-full bg-primary text-white text-center font-bold py-3 px-4 rounded-lg transition-colors mb-3 flex items-center justify-center ${!(activeAmount || (customAmount && parseFloat(customAmount) > 0))
+                                        ? 'opacity-50 cursor-not-allowed'
+                                        : 'hover:bg-primary/90'
+                                        }`}
+                                    whileHover={
+                                        activeAmount || (customAmount && parseFloat(customAmount) > 0)
+                                            ? { scale: 1.03 }
+                                            : {}
+                                    }
+                                    whileTap={
+                                        activeAmount || (customAmount && parseFloat(customAmount) > 0)
+                                            ? { scale: 0.97 }
+                                            : {}
+                                    }
+                                    onClick={handleDonate}
+                                    disabled={!(activeAmount || (customAmount && parseFloat(customAmount) > 0))}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
                                     Donar ahora
-                                </button>
-                                <p className="text-xs text-gray-500 text-center">
-                                    O completa el formulario completo para más opciones
+                                </motion.button>
+
+                                {(activeAmount || (customAmount && parseFloat(customAmount) > 0)) && (
+                                    <motion.div
+                                        className="text-xs text-gray-500 text-center"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                    >
+                                        Tu donación de ${activeAmount || parseFloat(customAmount)} ayudará a proporcionar alimentos a {Math.floor((activeAmount || parseFloat(customAmount)) / 5)} personas durante un día
+                                    </motion.div>
+                                )}
+
+                                <p className="text-xs text-gray-500 text-center mt-4">
+                                    Se te dirigirá al proceso completo de donación
                                 </p>
                             </motion.div>
                         </div>

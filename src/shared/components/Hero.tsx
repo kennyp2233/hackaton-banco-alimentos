@@ -42,6 +42,7 @@ const Hero: FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [showParticles, setShowParticles] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
+    const [showCustomField, setShowCustomField] = useState(false);
     const controls = useAnimation();
     const containerRef = useRef<HTMLDivElement>(null);
     const [particleOrigin, setParticleOrigin] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -72,6 +73,7 @@ const Hero: FC = () => {
     ) => {
         setActiveAmount(amount);
         setCustomAmount('');
+        setShowCustomField(false);
         setShowParticles(true);
 
         if (!containerRef.current) return;
@@ -85,7 +87,18 @@ const Hero: FC = () => {
         setTimeout(() => setShowParticles(false), 2000);
     };
 
+    // Mostrar campo personalizado
+    const handleShowCustomField = () => {
+        setActiveAmount(null);
+        setShowCustomField(true);
+        setCustomAmount('');
 
+        // Focus en el input después de un pequeño retraso para permitir animaciones
+        setTimeout(() => {
+            const customInput = document.getElementById('custom-amount-input');
+            if (customInput) customInput.focus();
+        }, 100);
+    };
 
     // Función para manejar la entrada de cantidad personalizada
     const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +106,6 @@ const Hero: FC = () => {
         // Solo permitir números y punto decimal
         if (/^\d*\.?\d*$/.test(value) || value === '') {
             setCustomAmount(value);
-            setActiveAmount(null);
 
             if (parseFloat(value) > 0 && containerRef.current) {
                 const rect = containerRef.current.getBoundingClientRect();
@@ -105,7 +117,6 @@ const Hero: FC = () => {
                 setShowParticles(true);
                 setTimeout(() => setShowParticles(false), 2000);
             }
-
         }
     };
 
@@ -145,7 +156,6 @@ const Hero: FC = () => {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
-
                 >
                     <motion.div
                         className="mb-8 inline-block"
@@ -204,7 +214,7 @@ const Hero: FC = () => {
                             </motion.button>
 
                             <Link href="/emergencias">
-                                <motion.a
+                                <motion.div
                                     className="bg-white shadow-md hover:bg-gray-100 text-primary border-2 border-primary font-bold py-4 px-10 rounded-full text-lg flex items-center justify-center transition-all"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.98 }}
@@ -213,7 +223,7 @@ const Hero: FC = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                     </svg>
                                     Emergencias
-                                </motion.a>
+                                </motion.div>
                             </Link>
                         </motion.div>
 
@@ -245,7 +255,6 @@ const Hero: FC = () => {
                                             <motion.button
                                                 key={amount}
                                                 onClick={(e) => handleAmountSelect(e, amount)}
-
                                                 className={`
                                                     py-3 px-4 rounded-lg border-2 font-bold text-lg transition-all relative overflow-hidden
                                                     ${activeAmount === amount
@@ -260,29 +269,65 @@ const Hero: FC = () => {
                                         ))}
                                     </div>
 
-                                    <div className="flex flex-col sm:flex-row gap-3">
-                                        <div className="relative flex-grow">
-                                            <div className="flex items-center">
-                                                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500 text-xl">$</span>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Otro monto"
-                                                    value={customAmount}
-                                                    onChange={handleCustomAmountChange}
-                                                    className="w-full px-4 py-3 pl-10 border-2 border-gray-300 focus:border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all text-center"
-                                                />
-                                            </div>
-                                        </div>
+                                    {/* Botón "Otro monto" */}
+                                    {!showCustomField && (
                                         <motion.button
-                                            className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md flex items-center justify-center"
-                                            whileHover={{ scale: 1.03 }}
+                                            onClick={handleShowCustomField}
+                                            className="w-full py-3 mb-3 px-4 rounded-lg border-2 border-gray-300 text-gray-700 hover:border-primary hover:text-primary font-medium transition-all"
+                                            whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
-                                            onClick={handleContinueDonation}
-                                            disabled={!(activeAmount || (customAmount && parseFloat(customAmount) > 0))}
                                         >
-                                            <span className="mr-2">🥕</span> Continuar
+                                            Otro monto
                                         </motion.button>
-                                    </div>
+                                    )}
+
+                                    {/* Campo de monto personalizado (solo visible cuando se solicita) */}
+                                    <AnimatePresence>
+                                        {showCustomField && (
+                                            <motion.div
+                                                className="mb-3"
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                            >
+                                                <div className="relative flex-grow">
+                                                    <div className="flex items-center">
+                                                        <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500 text-xl">$</span>
+                                                        <input
+                                                            id="custom-amount-input"
+                                                            type="text"
+                                                            placeholder="Ingrese monto personalizado"
+                                                            value={customAmount}
+                                                            onChange={handleCustomAmountChange}
+                                                            className="w-full px-4 py-3 pl-10 border-2 border-gray-300 focus:border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all text-center"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    <motion.button
+                                        className={`w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md flex items-center justify-center ${!(activeAmount || (customAmount && parseFloat(customAmount) > 0))
+                                                ? 'opacity-50 cursor-not-allowed'
+                                                : ''
+                                            }`}
+                                        whileHover={
+                                            activeAmount || (customAmount && parseFloat(customAmount) > 0)
+                                                ? { scale: 1.03 }
+                                                : {}
+                                        }
+                                        whileTap={
+                                            activeAmount || (customAmount && parseFloat(customAmount) > 0)
+                                                ? { scale: 0.98 }
+                                                : {}
+                                        }
+                                        onClick={handleContinueDonation}
+                                        disabled={!(activeAmount || (customAmount && parseFloat(customAmount) > 0))}
+                                    >
+                                        <span className="mr-2">🥕</span> Continuar
+                                    </motion.button>
 
                                     {(activeAmount || (customAmount && parseFloat(customAmount) > 0)) && (
                                         <motion.div
