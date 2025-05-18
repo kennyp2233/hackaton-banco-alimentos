@@ -1,51 +1,39 @@
+'use client';
 import { useEffect } from 'react';
 import { iniciarDatos } from '@/configuration/ppx.index';
 
-/**
- * Componente PpxButton para integrar el botón de pagos de PagoPlux
- * 
- * @param {Object} props - Propiedades del componente
- * @param {Object} props.data - Datos de configuración para PagoPlux
- * @param {boolean} props.visible - Si el botón debe ser visible o no
- */
-const PpxButton = ({ data, visible = false }: { data: object; visible: boolean; }) => {
-    // Estilos para el botón de pago
-    const buttonStyle = {
-        display: visible ? "block" : "none",
-        backgroundColor: "#FAFAFA",
-        right: "80px",
-        backgroundImage: "url(https://sandbox-paybox.pagoplux.com/img/pagar.png?v1)",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        height: "96px",
-        width: "215px",
-        border: "none",
-        cursor: "pointer",
-        backgroundSize: "contain",
-        outline: "0",
-        boxShadow: "0px 2px 2px lightgray",
-    };
+interface PpxButtonProps {
+    data: any;
+    visible?: boolean;
+}
 
-    // Inicializar datos de PagoPlux cuando el componente se monta o los datos cambian
+const PpxButton = ({ data, visible = true }: PpxButtonProps) => {
     useEffect(() => {
-        if (data) {
-            iniciarDatos(data);
-        }
+        if (data) iniciarDatos(data);
     }, [data]);
 
     return (
-        <>
-            {/* Contenedor para el modal de PagoPlux */}
-            <div id="modalPaybox"></div>
-
-            {/* Botón que activará el procesador de pagos */}
+        <div className="flex flex-col items-center gap-2 mt-6">
+            <div id="modalPaybox" />
             <button
-                style={buttonStyle}
                 id="pay"
                 type="button"
-                aria-label="Pagar con PagoPlux"
-            />
-        </>
+                className={`w-full max-w-xs px-6 py-3 rounded-xl bg-primary text-white text-lg font-semibold shadow-lg hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer ${visible ? '' : 'hidden'
+                    }`}
+            >
+                Donar ahora con tarjeta 💳
+            </button>
+            <div className="flex gap-3 mt-2 opacity-70">
+                {['visa', 'mastercard', 'americanexpress', 'dinersclub', 'discover'].map((brand) => (
+                    <img
+                        key={brand}
+                        src={`https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/${brand}.svg`}
+                        alt={brand}
+                        className="h-5 w-auto"
+                    />
+                ))}
+            </div>
+        </div>
     );
 };
 

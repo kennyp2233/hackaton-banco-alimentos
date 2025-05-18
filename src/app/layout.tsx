@@ -1,10 +1,11 @@
 import { ReactNode } from 'react';
 import { Gabarito } from 'next/font/google';
+import Script from 'next/script';
 import Header from '@/shared/layout/Header';
 import Footer from '@/shared/layout/Footer';
 import EmergencyAlert from '@/shared/components/EmergencyAlert';
-import Script from 'next/script';
 import './globals.css';
+import PagoPluxScripts from '@/shared/components/PagoPluxScripts';
 
 const gabarito = Gabarito({
   subsets: ['latin'],
@@ -17,30 +18,20 @@ export const metadata = {
   description: 'Ayuda a combatir el hambre y reducir el desperdicio de alimentos en Quito.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
       <head>
-        {/* Scripts para PagoPlux - Se cargan en el head para estar disponibles globalmente */}
-        <Script src="https://code.jquery.com/jquery-3.4.1.min.js" strategy="beforeInteractive" />
-        <Script
-          src="https://sandbox-paybox.pagoplux.com/paybox/index_angular.js"
-          strategy="beforeInteractive"
-          id="pagoplux-script"
-        />
+        <PagoPluxScripts />
       </head>
-      <body className={`${gabarito.variable} font-gabarito min-h-screen flex flex-col`}>
-        {/* Alerta de emergencia en la parte superior */}
+
+      <body
+        className={`${gabarito.variable} font-gabarito min-h-screen flex flex-col`}
+      >
         <EmergencyAlert />
 
         <Header />
-        <main className="flex-grow">
-          {children}
-        </main>
+        <main className="flex-grow">{children}</main>
         <Footer />
       </body>
     </html>

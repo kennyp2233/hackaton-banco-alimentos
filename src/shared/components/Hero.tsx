@@ -1,42 +1,47 @@
-'use client';
 import { FC, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import ParallaxBackground from '@/shared/components/ParallaxBackground';
 import { IMAGES } from '@/shared/config/constants';
+import { EmojiFoodParticles, ConfetiExplosion } from '@/shared/components/EmojiFoodParticles';
 
 // Definimos las imágenes para el efecto parallax
 const parallaxImages = [
     {
         src: IMAGES.parallax.tomatoe,
         alt: "Tomate",
-        position: 'left' as const,
+        position: 'left',
         speed: 30
     },
     {
         src: IMAGES.parallax.leaf,
         alt: "Hoja",
-        position: 'right' as const,
+        position: 'right',
         speed: 25
     },
     {
         src: IMAGES.parallax.bread,
         alt: "Pan",
-        position: 'left' as const,
+        position: 'left',
         speed: 20
     },
     {
         src: IMAGES.parallax.platain,
         alt: "Platano",
-        position: 'right' as const,
+        position: 'right',
         speed: 35
     },
 ];
 
 const Hero: FC = () => {
+    const router = useRouter();
     const [activeAmount, setActiveAmount] = useState<number | null>(null);
+    const [customAmount, setCustomAmount] = useState('');
     const [isOpen, setIsOpen] = useState(false);
+    const [showParticles, setShowParticles] = useState(false);
+    const [showConfetti, setShowConfetti] = useState(false);
     const controls = useAnimation();
 
     // Opciones de donación rápida
@@ -58,12 +63,62 @@ const Hero: FC = () => {
         return () => clearTimeout(timer);
     }, [controls]);
 
+    // Función para manejar la selección de una cantidad
+    const handleAmountSelect = (amount: number) => {
+        setActiveAmount(amount);
+        setCustomAmount('');
+        setShowParticles(true);
+
+        // Resetear el estado de partículas después de un momento
+        setTimeout(() => {
+            setShowParticles(false);
+        }, 2000);
+    };
+
+    // Función para manejar la entrada de cantidad personalizada
+    const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        // Solo permitir números y punto decimal
+        if (/^\d*\.?\d*$/.test(value) || value === '') {
+            setCustomAmount(value);
+            setActiveAmount(null);
+
+            // Mostrar partículas solo si hay un valor numérico
+            if (parseFloat(value) > 0) {
+                setShowParticles(true);
+                setTimeout(() => {
+                    setShowParticles(false);
+                }, 2000);
+            }
+        }
+    };
+
+    // Función para redireccionar a la página de donaciones con el monto preseleccionado
+    const handleContinueDonation = () => {
+        // Mostrar confeti al continuar
+        setShowConfetti(true);
+
+        // Obtener el monto final (seleccionado o personalizado)
+        const finalAmount = activeAmount || (customAmount ? parseFloat(customAmount) : 0);
+
+        // Solo redireccionar si hay un monto válido
+        if (finalAmount > 0) {
+            // Redireccionar después de un breve retraso para ver el confeti
+            setTimeout(() => {
+                router.push(`/donaciones?amount=${finalAmount}&type=recurring`);
+            }, 800);
+        }
+    };
+
+    // Obtener el monto activo para las partículas
+    const particleAmount = activeAmount || (customAmount ? parseFloat(customAmount) : 0);
+
     return (
         <div className="relative overflow-hidden min-h-[90vh] flex items-center">
             {/* Background con efecto parallax */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 overflow-hidden bg-gradient-to-r from-white/95 to-white/80">
-                    <ParallaxBackground images={parallaxImages} />
+                    <ParallaxBackground images={parallaxImages as any} />
                 </div>
             </div>
 
@@ -122,12 +177,13 @@ const Hero: FC = () => {
                         >
                             <motion.button
                                 onClick={() => setIsOpen(!isOpen)}
-                                className={`bg-primary shadow-elevated ${isOpen ? 'bg-primary-dark' : 'hover:bg-primary-dark'} text-white font-bold py-4 px-10 rounded-full text-lg transition-all`}
+                                className={`bg-primary shadow-elevated ${isOpen ? 'bg-primary-dark' : 'hover:bg-primary-dark'} text-white font-bold py-4 px-10 rounded-full text-lg transition-all flex items-center`}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.98 }}
                                 animate={isOpen ? { y: 0 } : { y: 0 }}
                             >
-                                {isOpen ? 'Cerrar' : 'Donar ahora'}
+                                {isOpen ? 'Cerrar' :
+                                    <><span className="mr-2">🍎</span> Donar ahora</>}
                             </motion.button>
 
                             <Link href="/emergencias">
@@ -148,21 +204,31 @@ const Hero: FC = () => {
                         <AnimatePresence>
                             {isOpen && (
                                 <motion.div
-                                    className="mt-6 p-6 bg-white rounded-2xl shadow-2xl max-w-2xl mx-auto border border-gray-100"
+                                    className="mt-6 p-6 bg-white rounded-2xl shadow-2xl max-w-2xl mx-auto border border-gray-100 relative"
                                     initial={{ opacity: 0, y: -20, height: 0 }}
                                     animate={{ opacity: 1, y: 0, height: 'auto' }}
                                     exit={{ opacity: 0, y: -20, height: 0 }}
                                     transition={{ duration: 0.4, ease: "easeInOut" }}
                                 >
+                                    {/* Componente de partículas de alimentos */}
+                                    <EmojiFoodParticles
+                                        amount={particleAmount}
+                                        isActive={showParticles}
+                                        type="food"
+                                    />
+
+                                    {/* Componente de confeti para celebración */}
+                                    <ConfetiExplosion isActive={showConfetti} />
+
                                     <h3 className="text-xl font-bold mb-6 text-center">Donación rápida</h3>
 
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                                         {quickDonationOptions.map((amount) => (
                                             <motion.button
                                                 key={amount}
-                                                onClick={() => setActiveAmount(amount)}
+                                                onClick={() => handleAmountSelect(amount)}
                                                 className={`
-                                                    py-3 px-4 rounded-lg border-2 font-bold text-lg transition-all
+                                                    py-3 px-4 rounded-lg border-2 font-bold text-lg transition-all relative overflow-hidden
                                                     ${activeAmount === amount
                                                         ? 'bg-primary text-white border-primary shadow-md'
                                                         : 'bg-white text-gray-700 border-gray-300 hover:border-primary hover:text-primary'}
@@ -176,29 +242,37 @@ const Hero: FC = () => {
                                     </div>
 
                                     <div className="flex flex-col sm:flex-row gap-3">
-                                        <input
-                                            type="text"
-                                            placeholder="Otro monto"
-                                            className="flex-grow px-4 py-3 border-2 border-gray-300 focus:border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all text-center"
-                                            onChange={() => setActiveAmount(null)}
-                                        />
+                                        <div className="relative flex-grow">
+                                            <div className="flex items-center">
+                                                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500 text-xl">$</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Otro monto"
+                                                    value={customAmount}
+                                                    onChange={handleCustomAmountChange}
+                                                    className="w-full px-4 py-3 pl-10 border-2 border-gray-300 focus:border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all text-center"
+                                                />
+                                            </div>
+                                        </div>
                                         <motion.button
-                                            className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md"
+                                            className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg transition-all shadow-md flex items-center justify-center"
                                             whileHover={{ scale: 1.03 }}
                                             whileTap={{ scale: 0.98 }}
+                                            onClick={handleContinueDonation}
+                                            disabled={!(activeAmount || (customAmount && parseFloat(customAmount) > 0))}
                                         >
-                                            Continuar
+                                            <span className="mr-2">🥕</span> Continuar
                                         </motion.button>
                                     </div>
 
-                                    {activeAmount && (
+                                    {(activeAmount || (customAmount && parseFloat(customAmount) > 0)) && (
                                         <motion.div
                                             className="mt-4 text-center text-sm text-gray-700"
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
                                         >
-                                            Con ${activeAmount} puedes proporcionar aproximadamente {activeAmount * 2} comidas a personas que lo necesitan.
+                                            Con ${activeAmount || parseFloat(customAmount)} puedes proporcionar aproximadamente {(activeAmount || parseFloat(customAmount)) * 2} comidas a personas que lo necesitan.
                                         </motion.div>
                                     )}
                                 </motion.div>
