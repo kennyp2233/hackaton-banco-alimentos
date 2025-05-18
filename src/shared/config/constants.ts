@@ -29,7 +29,7 @@ export const ORG_INFO = {
     email: 'info@bancodealimentosquito.org',
     socialMedia: {
         facebook: 'https://facebook.com/bancodealimentosquito',
-        instagram: 'https://instagram.com/bancodealimentosquito',
+        instagram: 'https://www.instagram.com/bancoalimentosquito/',
         twitter: 'https://twitter.com/BAQuito',
     },
 };
