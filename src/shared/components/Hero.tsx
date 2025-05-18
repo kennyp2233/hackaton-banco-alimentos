@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import ParallaxBackground from '@/shared/components/ParallaxBackground';
 import { IMAGES } from '@/shared/config/constants';
-import { EmojiFoodParticles, ConfetiExplosion } from '@/shared/components/EmojiFoodParticles';
+import { EmojiFoodParticles, ConfettiExplosion } from '@/shared/components/EmojiFoodParticles';
 
 // Definimos las imágenes para el efecto parallax
 const parallaxImages = [
@@ -218,7 +218,7 @@ const Hero: FC = () => {
                                     />
 
                                     {/* Componente de confeti para celebración */}
-                                    <ConfetiExplosion isActive={showConfetti} />
+                                    <ConfettiExplosion isActive={showConfetti} />
 
                                     <h3 className="text-xl font-bold mb-6 text-center">Donación rápida</h3>
 

@@ -4,13 +4,7 @@ import Image from 'next/image';
 import PageContainer from '@/shared/layout/PageContainer';
 import { motion } from 'framer-motion';
 
-interface EmergencyPageProps {
-    params: {
-        id: string;
-    };
-}
-
-export default function EmergencyPage({ params }: EmergencyPageProps) {
+export default function EmergencyPage() {
     // En producción, obtendríamos los datos de la API
     // Simulación de datos para el hackathon
     const emergencyData = {
