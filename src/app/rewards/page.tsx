@@ -74,7 +74,7 @@ export default function RewardsPage() {
 
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12">
+        <div className="min-h-screen bg-gray-50 pb-12">
             {/* Hero Section */}
             <div className="bg-primary text-white">
                 <PageContainer>

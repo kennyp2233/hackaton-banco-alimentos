@@ -107,18 +107,7 @@ const EmergencyAlert: FC = () => {
                             </div>
                         </div>
 
-                        {/* Indicador de múltiples emergencias si hay más de una */}
-                        {activeEmergencies.length > 1 && (
-                            <div className="flex justify-center mt-1 space-x-1">
-                                {activeEmergencies.map((_, index) => (
-                                    <span
-                                        key={index}
-                                        className={`block h-1 rounded-full ${index === currentIndex ? 'w-4 bg-white' : 'w-2 bg-red-300'
-                                            } transition-all duration-300`}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                       
                     </div>
                 </motion.div>
             )}

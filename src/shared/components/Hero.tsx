@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import ParallaxBackground from '@/shared/components/ParallaxBackground';
 import { IMAGES } from '@/shared/config/constants';
 import { EmojiFoodParticles, ConfettiExplosion } from '@/shared/components/EmojiFoodParticles';
+import GoalProgress from './GoalProgress';
 
 // Definimos las imágenes para el efecto parallax
 const parallaxImages = [
@@ -243,19 +244,17 @@ const Hero: FC = () => {
             </div>
 
             {/* Contenido principal */}
-            <div className="relative text-gray-800 z-10 container mx-auto px-4 py-20 md:py-32 flex flex-col items-center">
+            <div className="relative text-gray-800 z-10 container mx-auto px-4 py-5 md:py-10 flex flex-col items-center">
                 <motion.div
-                    className="w-full max-w-4xl mx-auto text-center"
+                    className="w-full max-w-4xl mx-auto text-center "
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                 >
-                    <span className="bg-primary text-white text-sm font-bold px-4 py-2 rounded-full">
-                        JUNTOS CONTRA EL HAMBRE
-                    </span>
+                    <GoalProgress current={152000} goal={200000} unit="$" />
 
                     <motion.h1
-                        className="text-4xl md:text-7xl font-bold mb-6 text-text-dark leading-tight"
+                        className="text-4xl md:text-7xl font-bold my-6 text-text-dark leading-tight"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
