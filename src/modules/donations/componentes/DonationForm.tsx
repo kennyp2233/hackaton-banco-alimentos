@@ -70,6 +70,7 @@ const DonationForm: FC<DonationFormProps> = ({
                         emergencyId: (window as any).__emergencyId
                     };
 
+
                     // Ocultar contenedor visual si aplica
                     if (typeof window !== 'undefined' && (window as any).jQuery) {
                         (window as any).jQuery('.container-unpayed').hide();
@@ -359,11 +360,33 @@ const DonationForm: FC<DonationFormProps> = ({
                                 <button
                                     type="button"
                                     disabled={!values.termsAccepted || isLoading}
-                                    onClick={() => {
+                                    onClick={async () => {
                                         const finalAmount = values.amount || parseFloat(values.customAmount || '0');
                                         if (finalAmount > 0 && values.termsAccepted) {
                                             setIsLoading(true);
                                             const data = generatePagoPluxData(values, finalAmount);
+                                            console.log('donationType', donationType);
+                                            if (donationType) {
+                                                console.log('Donación mensual');
+                                                await fetch(
+                                                    'https://hackaton-banco-alimentos-production.up.railway.app/api/facturas/generar',
+                                                    {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            id_donacion: 8,
+                                                            datos_fiscales: {
+                                                                rfc: 'PEJM850615H01',
+                                                                razon_social: 'Juan Pérez Molina',
+                                                                direccion_fiscal: 'Av. Principal 123, Quito',
+                                                                correo_facturacion: values.email,  // aquí lo dinámico
+                                                                requiere_cfdi: true
+                                                            }
+                                                        })
+                                                    }
+                                                );
+                                            }
+
                                             iniciarDatos(data);
 
                                             const timeoutMs = 10000; // 10 segundos

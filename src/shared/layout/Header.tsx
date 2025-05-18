@@ -201,13 +201,7 @@ const Header: FC = () => {
                                 >
                                     Inicio
                                 </Link>
-                                <Link
-                                    href="/donaciones"
-                                    className="text-gray-700 hover:text-primary font-medium transition-colors py-2 border-b border-gray-100"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    Donar
-                                </Link>
+                              
                                 <Link
                                     href="/emergencias"
                                     className="text-gray-700 hover:text-primary font-medium transition-colors py-2 border-b border-gray-100"
