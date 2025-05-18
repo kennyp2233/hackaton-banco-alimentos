@@ -10,8 +10,10 @@ export interface DonationFormData {
     paymentMethod: string;
     isRecurring: boolean;
     phoneNumber?: string;
+    identification?: string;
     address?: string;
     comments?: string;
+    transactionId?: string;
 }
 
 export interface DonationResponse {
@@ -34,16 +36,26 @@ export const useDonationService = () => {
 
         try {
             // En producción, aquí realizaríamos una llamada a la API real
-            // Simulamos un delay para el hackathon
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Simulamos un delay para el hackatrón
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            // Si ya tenemos un transactionId de PagoPlux, lo usamos directamente
+            const transactionId = donationData.transactionId || `TX-${Math.floor(Math.random() * 1000000)}`;
 
             // Simulación de respuesta exitosa
             const response: DonationResponse = {
                 success: true,
-                transactionId: `TX-${Math.floor(Math.random() * 1000000)}`
+                transactionId
             };
 
-            setSuccessData({ transactionId: response.transactionId || '' });
+            setSuccessData({ transactionId });
+
+            // En una aplicación real, aquí guardaríamos la donación en la base de datos
+            console.log('Procesando donación:', {
+                ...donationData,
+                transactionId
+            });
+
             return response;
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Error al procesar la donación';
@@ -59,6 +71,10 @@ export const useDonationService = () => {
 
     // Función para obtener información sobre el impacto de las donaciones
     const getDonationImpact = (amount: number): string => {
+        if (!amount || amount === 0) {
+            return "Selecciona un monto para ver el impacto de tu donación.";
+        }
+
         if (amount < 10) {
             return "Tu donación ayuda a distribuir alimentos a familias en situación de vulnerabilidad.";
         } else if (amount < 50) {
@@ -67,33 +83,6 @@ export const useDonationService = () => {
             return `Tu donación de $${amount} permite rescatar aproximadamente ${Math.floor(amount * 2)} kg de alimentos.`;
         } else {
             return `Con $${amount} podemos proporcionar alimentos nutritivos a ${Math.floor(amount * 0.2)} familias durante una semana completa.`;
-        }
-    };
-
-    // Obtener información de impacto desde constantes
-    const getImpactInfo = (amount: number) => {
-        if (amount <= DONATION_IMPACT.small.amount) {
-            return DONATION_IMPACT.small.description;
-        } else if (amount <= DONATION_IMPACT.medium.amount) {
-            return DONATION_IMPACT.medium.description;
-        } else {
-            return DONATION_IMPACT.large.description;
-        }
-    };
-
-    // Funcionalidad específica para donaciones recurrentes
-    const cancelRecurringDonation = async (subscriptionId: string): Promise<boolean> => {
-        setIsLoading(true);
-
-        try {
-            // Simulamos una llamada a la API para cancelar la suscripción
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            return true;
-        } catch (err) {
-            setError('Error al cancelar la donación recurrente');
-            return false;
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -107,16 +96,27 @@ export const useDonationService = () => {
 
         try {
             // En producción, aquí realizaríamos una llamada a la API real
-            // Simulamos un delay para el hackathon
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Simulamos un delay para el hackatrón
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            // Si ya tenemos un transactionId de PagoPlux, lo usamos directamente
+            const transactionId = donationData.transactionId || `EMRG-${Math.floor(Math.random() * 1000000)}`;
 
             // Simulación de respuesta exitosa
             const response: DonationResponse = {
                 success: true,
-                transactionId: `EMRG-${Math.floor(Math.random() * 1000000)}`
+                transactionId
             };
 
-            setSuccessData({ transactionId: response.transactionId || '' });
+            setSuccessData({ transactionId });
+
+            // En una aplicación real, aquí guardaríamos la donación de emergencia en la base de datos
+            console.log('Procesando donación para emergencia:', {
+                ...donationData,
+                emergencyId,
+                transactionId
+            });
+
             return response;
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Error al procesar la donación para emergencia';
@@ -134,7 +134,7 @@ export const useDonationService = () => {
     const DONATION_BENEFITS = {
         recurring: [
             'Apoyas sostenidamente a familias en necesidad.',
-            'Recibes informes sobre el impacto de tu ayuda.',
+            'Recibes informes mensuales sobre el impacto de tu ayuda.',
             'Certificado anual para beneficios tributarios.',
             'Formas parte de la red de donantes permanentes.'
         ],
@@ -151,16 +151,46 @@ export const useDonationService = () => {
         return isRecurring ? DONATION_BENEFITS.recurring : DONATION_BENEFITS.single;
     };
 
+    // Función para preparar los datos de pago para PagoPlux
+    const preparePagoPluxData = (donationData: DonationFormData) => {
+        return {
+            PayboxRemail: "abautista@pagoplux.com", // Email de la cuenta PagoPlux del Establecimiento
+            PayboxSendmail: donationData.email, // Email del usuario que realiza el pago
+            PayboxRename: "Banco de Alimentos Quito", // Nombre del establecimiento en PagoPlux
+            PayboxSendname: donationData.name, // Nombre del usuario que realiza el pago
+            PayboxBase0: "0.00", // Monto sin impuestos
+            PayboxBase12: donationData.amount.toFixed(2), // Monto con impuestos incluidos
+            PayboxDescription: donationData.isRecurring
+                ? "Donación mensual - Banco de Alimentos Quito"
+                : "Donación única - Banco de Alimentos Quito", // Descripción del pago
+            PayboxProduction: false, // Modo prueba
+            PayboxEnvironment: "sandbox", // Ambiente de ejecución
+            PayboxLanguage: "es", // Lenguaje del Paybox
+            PayboxPagoPlux: true, // Tipo de iframe
+            PayboxDirection: donationData.address || "No especificada", // Dirección del tarjetahabiente
+            PayBoxClientPhone: donationData.phoneNumber || "No especificado", // Teléfono del tarjetahabiente
+            PayBoxClientIdentification: donationData.identification || "No especificado", // Identificación del tarjetahabiente
+            PayboxRecurrent: donationData.isRecurring, // Si es pago recurrente
+
+            // Solo para pagos recurrentes
+            ...(donationData.isRecurring && {
+                PayboxIdPlan: 'Plan Mensual',
+                PayboxPermitirCalendarizar: true,
+                PayboxPagoInmediato: false,
+                PayboxCobroPrueba: false,
+            }),
+        };
+    };
+
     return {
         isLoading,
         error,
         successData,
         processDonation,
         getDonationImpact,
-        getImpactInfo,
-        cancelRecurringDonation,
         processEmergencyDonation,
-        getDonationBenefits
+        getDonationBenefits,
+        preparePagoPluxData
     };
 };
 

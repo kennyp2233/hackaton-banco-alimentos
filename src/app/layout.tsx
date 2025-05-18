@@ -3,6 +3,7 @@ import { Gabarito } from 'next/font/google';
 import Header from '@/shared/layout/Header';
 import Footer from '@/shared/layout/Footer';
 import EmergencyAlert from '@/shared/components/EmergencyAlert';
+import Script from 'next/script';
 import './globals.css';
 
 const gabarito = Gabarito({
@@ -23,6 +24,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
+      <head>
+        {/* Scripts para PagoPlux - Se cargan en el head para estar disponibles globalmente */}
+        <Script src="https://code.jquery.com/jquery-3.4.1.min.js" strategy="beforeInteractive" />
+        <Script
+          src="https://sandbox-paybox.pagoplux.com/paybox/index_angular.js"
+          strategy="beforeInteractive"
+          id="pagoplux-script"
+        />
+      </head>
       <body className={`${gabarito.variable} font-gabarito min-h-screen flex flex-col`}>
         {/* Alerta de emergencia en la parte superior */}
         <EmergencyAlert />
@@ -32,16 +42,6 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-
-
-        Sandbox:
-        <script src="https://sandbox-paybox.pagoplux.com/paybox/index_angular.js"></script>
-        Producción:
-        <script src="https://paybox.pagoplux.com/paybox/index_angular.js"></script>
-
-
-
       </body>
     </html>
   );
