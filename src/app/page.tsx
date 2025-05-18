@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import Hero from '@/shared/components/Hero';
 import { motion } from 'framer-motion';
@@ -39,10 +40,17 @@ export default function Home() {
     fetchCriticalEmergency();
   }, []);
 
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <Hero />
+      {isClient && <Hero />}
+
 
       {/* About Section */}
       <section className="py-16 md:py-24 bg-gray-50 relative overflow-hidden">
