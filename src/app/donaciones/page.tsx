@@ -1,10 +1,10 @@
-import PageContainer from '@/shared/layout/PageContainer';
+import { Suspense } from 'react';
 import DonationClientView from '@/modules/donations/componentes/DonationClientView';
 
 export default function DonationsPage() {
     return (
-        <PageContainer>
+        <Suspense fallback={<div>Cargando...</div>}>
             <DonationClientView />
-        </PageContainer>
+        </Suspense>
     );
 }
