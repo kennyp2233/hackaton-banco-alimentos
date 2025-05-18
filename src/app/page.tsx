@@ -253,6 +253,23 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+      <Link
+        href="https://wa.me/593998841200?text=Hola%2C%20me%20gustar%C3%ADa%20convertirme%20en%voluntario%20del%20Banco%20de%20Alimentos"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full shadow-lg transition-all"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M20.52 3.48A11.76 11.76 0 0 0 12 0C5.37 0 0 5.37 0 12a11.93 11.93 0 0 0 1.67 6.17L0 24l6.27-1.65A11.87 11.87 0 0 0 12 24c6.63 0 12-5.37 12-12 0-3.19-1.24-6.2-3.48-8.52ZM12 22c-1.83 0-3.63-.5-5.17-1.44l-.37-.22-3.72.98.98-3.61-.24-.38A9.89 9.89 0 0 1 2 12c0-5.52 4.48-10 10-10s10 4.48 10 10-4.48 10-10 10Zm5.16-7.28c-.28-.14-1.63-.81-1.88-.9-.25-.1-.44-.14-.63.14s-.72.9-.88 1.08c-.16.18-.32.2-.6.07a7.8 7.8 0 0 1-2.3-1.42 8.65 8.65 0 0 1-1.6-2.02c-.17-.29 0-.44.13-.58.14-.14.3-.32.45-.48.15-.16.2-.27.3-.45.1-.18.05-.33-.02-.47-.07-.14-.63-1.52-.87-2.09-.23-.56-.47-.48-.65-.49h-.56c-.19 0-.48.07-.73.33a3.06 3.06 0 0 0-.96 2.28c0 1.34.97 2.63 1.1 2.81.14.18 1.9 3 4.6 4.2.64.28 1.13.45 1.52.58.64.2 1.22.17 1.68.1.51-.08 1.63-.67 1.86-1.31.23-.64.23-1.2.16-1.31-.06-.1-.25-.16-.52-.3Z" />
+        </svg>
+        <span className="hidden sm:inline font-bold">Conviértete en voluntario</span>
+      </Link>
+
     </div>
   );
 }

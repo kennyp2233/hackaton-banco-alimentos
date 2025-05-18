@@ -246,7 +246,7 @@ const Hero: FC = () => {
             {/* Contenido principal */}
             <div className="relative text-gray-800 z-10 container mx-auto px-4 py-5 md:py-10 flex flex-col items-center">
                 <motion.div
-                    className="w-full max-w-4xl mx-auto text-center "
+                    className="w-full max-w-4xl mx-auto text-center backdrop-blur-3xl"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
@@ -314,7 +314,7 @@ const Hero: FC = () => {
                                     <motion.img
                                         src="/images/donacion/don1.png"
                                         alt="Haz tu donación"
-                                        className="absolute rotate-12 top-[-100px] left-[-90px] w-40 h-auto pointer-events-none select-none"
+                                        className="absolute rotate-12 top-[-100px] left-[-90px] w-52 max-sm:hidden h-auto pointer-events-none select-none"
                                         animate={{
                                             y: [0, -10, 0, 10, 0],
                                             rotate: [12, 14, 12],
@@ -329,7 +329,7 @@ const Hero: FC = () => {
                                     <motion.img
                                         src="/images/donacion/don2.png"
                                         alt="Aporta ya"
-                                        className="absolute -rotate-12 top-[-120px] right-[-40px] w-40 h-auto pointer-events-none select-none"
+                                        className="absolute -rotate-12 top-[-120px] right-[-40px] w-40 max-sm:w-12 h-auto pointer-events-none select-none"
                                         animate={{
                                             y: [0, 10, 0, -10, 0],
                                             rotate: [-12, -14, -12],
